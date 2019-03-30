@@ -2,7 +2,7 @@
   "name": "query-string-router",
   "version": "0.0.1",
   "description": "Vanilla JavaScript query string state handler",
-  "main": "src/index.js",
+  "main": "source/index.js",
   "scripts": {
     "test": "jest"
   },
