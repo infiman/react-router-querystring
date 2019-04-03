@@ -1,3 +1,3 @@
-import memoize from 'lodash/memoize'
+import * as Parser from './helpers/queryString'
 
-export const test = memoize(console.log)
+export { Parser }
