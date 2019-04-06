@@ -1,87 +1,77 @@
 import qs from 'qs'
-import _ from 'lodash'
+import memoize from 'fast-memoize'
 
 const QS_CONFIG = {
   arrayFormat: 'brackets',
   addQueryPrefix: true,
-  ignoreQueryPrefix: true
+  ignoreQueryPrefix: true,
+  interpretNumericEntities: true
 }
 
-const mergeOrReplace = (target, patch) => {
-  switch (true) {
-    case patch instanceof Array: {
-      if (!(target instanceof Array)) {
-        throw new Error(
-          `Incompatible types to merge. Provided: array. Expected: ${typeof target}`
-        )
+export const parseQueryString = memoize((queryString, options) =>
+  qs.parse(queryString, options || QS_CONFIG)
+)
+
+export const stringifyQueryParams = memoize((queryParams, options) =>
+  qs.stringify(queryParams, options || QS_CONFIG)
+)
+
+export const addQueryParams = memoize((queryParams, params) =>
+  Object.keys(params || {}).reduce(
+    (destination, key) => {
+      const target = destination[key]
+      const patch = params[key]
+      const payload = {}
+
+      if (Array.isArray(patch) && Array.isArray(target)) {
+        payload[key] = [...target, ...patch]
+      } else if (
+        patch &&
+        typeof patch === 'object' &&
+        target &&
+        typeof target === 'object'
+      ) {
+        payload[key] = addQueryParams(target, patch)
+      } else if (typeof patch !== 'undefined') {
+        payload[key] = patch
+      } else {
+        payload[key] = target
       }
 
-      return [...target, ...patch]
-    }
-    case typeof patch === 'object': {
-      if (typeof target !== 'object') {
-        throw new Error(
-          `Incompatible types to merge. Provided: object. Expected: ${typeof target}`
-        )
+      return {
+        ...destination,
+        ...payload
       }
-
-      return { ...target, ...patch }
-    }
-    default:
-      return patch
-  }
-}
-
-const filterOrRemove = (target, patch) => {
-  switch (true) {
-    case !patch:
-      return undefined
-    case patch instanceof Array: {
-      if (!(target instanceof Array)) {
-        throw new Error(
-          `Incompatible types to merge. Provided: Array. Expected: ${typeof target}`
-        )
-      }
-
-      return target.filter((item, i) => !patch.includes(item))
-    }
-    default:
-      return target
-  }
-}
-
-export const parseQueryString = _.memoize((queryString, options = QS_CONFIG) =>
-  qs.parse(queryString, options)
-)
-
-export const stringifyQueryParams = _.memoize(
-  (queryParams, options = QS_CONFIG) => qs.stringify(queryParams, options)
-)
-
-export const omitQueryParams = _.memoize((queryParams, paths = []) =>
-  _.omit(queryParams, paths)
-)
-
-export const pickQueryParams = _.memoize((queryParams, paths = []) =>
-  _.pick(queryParams, paths)
-)
-
-export const addQueryParams = _.memoize((queryParams, params = {}) =>
-  Object.keys(params).reduce(
-    (destination, key) => ({
-      ...destination,
-      [key]: mergeOrReplace(queryParams[key], params[key])
-    }),
-    queryParams
+    },
+    { ...(queryParams || {}) }
   )
 )
 
-export const removeQueryParams = _.memoize((queryParams, params = {}) =>
-  Object.keys(params).reduce(
-    (destination, key) => ({
-      ...destination,
-      [key]: filterOrRemove(queryParams[key], params[key])
-    }),
-    queryParams
+export const removeQueryParams = memoize((queryParams, params) =>
+  Object.keys(params || {}).reduce(
+    (destination, key) => {
+      const target = queryParams[key]
+      const patch = params[key]
+      const payload = {}
+
+      if (Array.isArray(patch) && Array.isArray(target)) {
+        payload[key] = target.filter((item, i) => !patch.includes(item))
+      } else if (
+        patch &&
+        typeof patch === 'object' &&
+        target &&
+        typeof target === 'object'
+      ) {
+        payload[key] = removeQueryParams(target, patch)
+      } else if (typeof patch === 'undefined') {
+        delete destination[key]
+      }
+
+      return {
+        ...destination,
+        ...payload
+      }
+    },
+    { ...(queryParams || {}) }
   )
 )
