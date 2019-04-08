@@ -7,6 +7,63 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 var qs = _interopDefault(require('qs'));
 var memoize = _interopDefault(require('fast-memoize'));
 
+const mergeLocationIntoCache = (cache, [path, ...restPath], location) => {
+  const occurrence = Object.keys(cache).find(key => key === path);
+
+  if (path) {
+    if (!occurrence) {
+      cache[path] = {
+        nested: {}
+      };
+    }
+
+    if (!restPath.length) {
+      cache[path].location = location;
+    }
+
+    Object.assign(
+      cache[occurrence || path].nested,
+      mergeLocationIntoCache(
+        cache[occurrence || path].nested,
+        restPath,
+        location
+      )
+    );
+  }
+};
+
+const queryStore = {
+  add (path, location) {
+    const [, ...parsedPath] = path.split('/');
+
+    mergeLocationIntoCache(this.cache, parsedPath, location);
+
+    return this
+  },
+  clear () {
+    Object.keys(this.cache).forEach(key => delete this.cache[key]);
+
+    return this
+  },
+  resolveQueryString (to) {
+    console.log(this, to);
+    console.warn('NOT IMPLEMENTED YET!');
+  }
+};
+let store;
+
+const createQueryStore = () => {
+  if (!store) {
+    store = Object.create(queryStore, {
+      cache: {
+        value: {}
+      }
+    });
+  }
+
+  return store
+};
+
 const QS_CONFIG = {
   arrayFormat: 'brackets',
   addQueryPrefix: true,
@@ -81,29 +138,6 @@ const removeQueryParams = memoize((queryParams, params) =>
     { ...(queryParams || {}) }
   )
 );
-
-const queryStore = {
-  add (path, location) {
-    this.cache[path] = location;
-
-    return this
-  },
-  resolveQueryString (to) {
-    console.log(this, to);
-    console.warn('NOT IMPLEMENTED YET!');
-  }
-};
-let store;
-
-const createQueryStore = () => {
-  if (!store) {
-    store = Object.create(queryStore);
-
-    store.cache = {};
-  }
-
-  return store
-};
 
 exports.addQueryParams = addQueryParams;
 exports.createQueryStore = createQueryStore;
