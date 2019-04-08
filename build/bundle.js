@@ -82,11 +82,31 @@ const removeQueryParams = memoize((queryParams, params) =>
   )
 );
 
-var queryString = /*#__PURE__*/Object.freeze({
-  parseQueryString: parseQueryString,
-  stringifyQueryParams: stringifyQueryParams,
-  addQueryParams: addQueryParams,
-  removeQueryParams: removeQueryParams
-});
+const queryStore = {
+  add (path, location) {
+    this.cache[path] = location;
 
-exports.Parser = queryString;
+    return this
+  },
+  resolveQueryString (to) {
+    console.log(this, to);
+    console.warn('NOT IMPLEMENTED YET!');
+  }
+};
+let store;
+
+const createQueryStore = () => {
+  if (!store) {
+    store = Object.create(queryStore);
+
+    store.cache = {};
+  }
+
+  return store
+};
+
+exports.addQueryParams = addQueryParams;
+exports.createQueryStore = createQueryStore;
+exports.parseQueryString = parseQueryString;
+exports.removeQueryParams = removeQueryParams;
+exports.stringifyQueryParams = stringifyQueryParams;
