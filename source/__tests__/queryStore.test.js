@@ -14,7 +14,11 @@ describe('queryStore module', () => {
 
     test('add', () => {
       expect(
-        queryStore.add('/path/:param/:id', { search: '?foo=bar' }).cache
+        queryStore.add({
+          pathname: '/path/:param/:id',
+          search: '?foo=bar',
+          state: { __query__: {} }
+        }).cache
       ).toEqual({
         path: {
           nested: {
@@ -22,7 +26,9 @@ describe('queryStore module', () => {
               nested: {
                 ':id': {
                   location: {
-                    search: '?foo=bar'
+                    pathname: '/path/:param/:id',
+                    search: '?foo=bar',
+                    state: { __query__: {} }
                   },
                   nested: {}
                 }
@@ -34,11 +40,58 @@ describe('queryStore module', () => {
     })
 
     test('clear', () => {
-      queryStore.add('/path', { search: '?foo=bar' }).clear()
+      queryStore
+        .add({
+          pathname: '/path',
+          search: '?foo=bar',
+          state: { __query__: {} }
+        })
+        .clear()
 
       expect(queryStore.cache).toEqual({})
     })
 
-    test.todo('resolveQueryString')
+    test('resolveQueryString', () => {
+      queryStore.add({
+        pathname: '/path',
+        search: '?f=b',
+        state: { __query__: {} }
+      })
+      queryStore.add({
+        pathname: '/path/:param',
+        search: '?fo=ba&arr[]=foo&arr[]=bar',
+        state: { __query__: {} }
+      })
+      queryStore.add({
+        pathname: '/path/:param/:id',
+        search: '?foo=bar',
+        state: { __query__: {} }
+      })
+      queryStore.add({
+        pathname: '/pathname/detached',
+        search: '?foo=bar',
+        state: { __query__: {} }
+      })
+
+      expect(queryStore.resolveQueryString('/path')).toEqual('?f=b')
+      expect(
+        queryStore.resolveQueryString('/path/:param', {
+          add: {
+            bla: 'string',
+            arr: ['bla']
+          },
+          remove: {
+            f: undefined,
+            arr: ['bar']
+          }
+        })
+      ).toEqual('?fo=ba&arr%5B%5D=foo&arr%5B%5D=bla&bla=string')
+      expect(queryStore.resolveQueryString('/path/:param/:id')).toEqual(
+        '?f=b&fo=ba&arr%5B%5D=foo&arr%5B%5D=bar&foo=bar'
+      )
+      expect(queryStore.resolveQueryString('/pathname/detached')).toEqual(
+        '?foo=bar'
+      )
+    })
   })
 })

@@ -93,15 +93,15 @@ describe('queryString module', () => {
           {
             ...QUERY_PARAMS,
             c: 'string',
-            h: { k: 2 }
+            h: { k: {} }
           },
           {
             b: ['bar'],
             c: 'string',
-            h: undefined
+            h: { k: undefined }
           }
         )
-      ).toEqual({ ...QUERY_PARAMS, b: ['foo'] }))
+      ).toEqual({ ...QUERY_PARAMS, b: ['foo'], h: {} }))
 
     test('memoization', () => {
       const first = removeQueryParams(QUERY_PARAMS, { a: undefined })
