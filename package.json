@@ -33,13 +33,13 @@
     "eslint-plugin-promise": "^4.1.1",
     "eslint-plugin-standard": "^4.0.0",
     "jest": "^24.7.1",
+    "qs": "^6.7.0",
     "rollup": "^1.9.0",
     "rollup-plugin-commonjs": "^9.3.4",
     "rollup-plugin-eslint": "^5.1.0",
     "rollup-plugin-node-resolve": "^4.2.0"
   },
   "dependencies": {
-    "fast-memoize": "^2.5.1",
-    "qs": "^6.7.0"
+    "fast-memoize": "^2.5.1"
   }
 }

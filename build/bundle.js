@@ -4,23 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var qs = _interopDefault(require('qs'));
 var memoize = _interopDefault(require('fast-memoize'));
-
-const QS_CONFIG = {
-  arrayFormat: 'brackets',
-  addQueryPrefix: true,
-  ignoreQueryPrefix: true,
-  interpretNumericEntities: true
-};
-
-const parseQueryString = memoize((queryString, options) =>
-  qs.parse(queryString, options || QS_CONFIG)
-);
-
-const stringifyQueryParams = memoize((queryParams, options) =>
-  qs.stringify(queryParams, options || QS_CONFIG)
-);
 
 const addQueryParams = memoize((queryParams, params) =>
   Object.keys(params || {}).reduce(
@@ -82,38 +66,75 @@ const removeQueryParams = memoize((queryParams, params) =>
   )
 );
 
+const STATE_CACHE_KEY = '__queryStringCacheStateObject__';
+const ROOT_SCOPE = '/';
+const ROOT_WILDCARD = '*';
+
+const parsePathname = memoize(pathname => {
+  const [, ...splitPathname] = pathname.split('/');
+
+  if (splitPathname.length) {
+    if (!splitPathname[0]) {
+      splitPathname[0] = ROOT_SCOPE;
+    }
+
+    return splitPathname
+  }
+
+  return ROOT_WILDCARD
+});
+
 const mergeLocationIntoCache = (cache, [path, ...restPath], location) => {
   const occurrence = Object.keys(cache).find(key => key === path);
 
   if (path) {
     if (!occurrence) {
       cache[path] = {
-        nested: {}
+        nested: {},
+        persisted: {}
       };
     }
 
+    const partialCache = cache[occurrence || path];
+
     if (!restPath.length) {
-      cache[path].location = location;
+      const stateObject = location.state[STATE_CACHE_KEY];
+
+      partialCache.location = location;
+
+      if (stateObject.persist) {
+        if (stateObject.mutation.remove) {
+          partialCache.persisted = removeQueryParams(
+            partialCache.persisted,
+            stateObject.mutation.remove
+          );
+        }
+
+        if (stateObject.mutation.add) {
+          partialCache.persisted = addQueryParams(
+            partialCache.persisted,
+            stateObject.mutation.add
+          );
+        }
+      }
     }
 
     Object.assign(
-      cache[occurrence || path].nested,
-      mergeLocationIntoCache(
-        cache[occurrence || path].nested,
-        restPath,
-        location
-      )
+      partialCache.nested,
+      mergeLocationIntoCache(partialCache.nested, restPath, location)
     );
   }
 };
 
 const pickBranchFromCache = (cache, [path, ...restPath], destination = []) => {
+  const partialCache = cache[path];
+
   if (path && cache[path]) {
-    if (cache[path].location) {
-      destination.push(cache[path]);
+    if (partialCache.location) {
+      destination.push(partialCache);
     }
 
-    return pickBranchFromCache(cache[path].nested, restPath, destination)
+    return pickBranchFromCache(partialCache.nested, restPath, destination)
   }
 
   return destination
@@ -121,9 +142,15 @@ const pickBranchFromCache = (cache, [path, ...restPath], destination = []) => {
 
 const queryStore = {
   add (location) {
-    const [, ...parsedPath] = location.pathname.split('/');
+    const stateObject = location.state[STATE_CACHE_KEY];
 
-    mergeLocationIntoCache(this.cache, parsedPath, location);
+    if (!stateObject) {
+      return this
+    }
+
+    const parsedPathname = parsePathname(stateObject.scope);
+
+    mergeLocationIntoCache(this.cache, parsedPathname, location);
 
     return this
   },
@@ -132,37 +159,48 @@ const queryStore = {
 
     return this
   },
-  resolveQueryString (pathname, { add, remove } = {}) {
-    const [, ...parsedTo] = pathname.split('/');
-    const branch = pickBranchFromCache(this.cache, parsedTo);
+  resolveQueryString (scope, { add, remove } = {}) {
+    const parsedPathname = parsePathname(scope);
+    const branch = pickBranchFromCache(this.cache, parsedPathname);
     let queryParams = branch.reduce(
-      (destination, { location: { search } }) => ({
-        ...destination,
-        ...this.parseQueryString(search)
-      }),
+      (destination, { persisted }) => addQueryParams(destination, persisted),
       {}
     );
-
-    if (add) {
-      queryParams = addQueryParams(queryParams, add);
-    }
 
     if (remove) {
       queryParams = removeQueryParams(queryParams, remove);
     }
 
+    if (add) {
+      queryParams = addQueryParams(queryParams, add);
+    }
+
     return this.stringifyQueryParams(queryParams)
   }
 };
-let store;
 
+const createStateObject = payload => ({
+  [STATE_CACHE_KEY]: {
+    persist: false,
+    scope: ROOT_SCOPE,
+    mutation: {},
+    ...payload
+  }
+});
+
+let store;
 const createQueryStore = ({
-  parseQueryString: parseQueryString$1 = parseQueryString,
-  stringifyQueryParams: stringifyQueryParams$1 = stringifyQueryParams
+  parseQueryString,
+  stringifyQueryParams
 } = {}) => {
   if (!store) {
     store = Object.create(
-      { ...queryStore, parseQueryString: parseQueryString$1, stringifyQueryParams: stringifyQueryParams$1 },
+      {
+        ...queryStore,
+        createStateObject,
+        parseQueryString,
+        stringifyQueryParams
+      },
       {
         cache: {
           value: {}
@@ -176,6 +214,4 @@ const createQueryStore = ({
 
 exports.addQueryParams = addQueryParams;
 exports.createQueryStore = createQueryStore;
-exports.parseQueryString = parseQueryString;
 exports.removeQueryParams = removeQueryParams;
-exports.stringifyQueryParams = stringifyQueryParams;

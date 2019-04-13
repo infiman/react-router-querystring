@@ -1,20 +1,4 @@
-import qs from 'qs'
 import memoize from 'fast-memoize'
-
-const QS_CONFIG = {
-  arrayFormat: 'brackets',
-  addQueryPrefix: true,
-  ignoreQueryPrefix: true,
-  interpretNumericEntities: true
-}
-
-export const parseQueryString = memoize((queryString, options) =>
-  qs.parse(queryString, options || QS_CONFIG)
-)
-
-export const stringifyQueryParams = memoize((queryParams, options) =>
-  qs.stringify(queryParams, options || QS_CONFIG)
-)
 
 export const addQueryParams = memoize((queryParams, params) =>
   Object.keys(params || {}).reduce(
