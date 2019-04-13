@@ -69,6 +69,8 @@ const removeQueryParams = memoize((queryParams, params) =>
 const STATE_CACHE_KEY = '__queryStringCacheStateObject__';
 const ROOT_SCOPE = '/';
 const ROOT_WILDCARD = '*';
+const PERSISTED_KEY = 'persisted';
+const SHADOW_KEY = Symbol('shadow');
 
 const parsePathname = memoize(pathname => {
   const [, ...splitPathname] = pathname.split('/');
@@ -91,7 +93,8 @@ const mergeLocationIntoCache = (cache, [path, ...restPath], location) => {
     if (!occurrence) {
       cache[path] = {
         nested: {},
-        persisted: {}
+        [PERSISTED_KEY]: {},
+        [SHADOW_KEY]: {}
       };
     }
 
@@ -99,24 +102,29 @@ const mergeLocationIntoCache = (cache, [path, ...restPath], location) => {
 
     if (!restPath.length) {
       const stateObject = location.state[STATE_CACHE_KEY];
+      const strategy = stateObject.persist ? PERSISTED_KEY : SHADOW_KEY;
 
       partialCache.location = location;
 
-      if (stateObject.persist) {
-        if (stateObject.mutation.remove) {
-          partialCache.persisted = removeQueryParams(
-            partialCache.persisted,
-            stateObject.mutation.remove
-          );
-        }
-
-        if (stateObject.mutation.add) {
-          partialCache.persisted = addQueryParams(
-            partialCache.persisted,
-            stateObject.mutation.add
-          );
-        }
+      if (stateObject.mutation.remove) {
+        partialCache[strategy] = removeQueryParams(
+          partialCache[strategy],
+          stateObject.mutation.remove
+        );
       }
+
+      if (stateObject.mutation.add) {
+        partialCache[strategy] = addQueryParams(
+          partialCache[strategy],
+          stateObject.mutation.add
+        );
+      }
+
+      Object.keys(partialCache.nested).forEach(key =>
+        flushPartialCache(partialCache.nested[key], { recursive: true })
+      );
+    } else {
+      flushPartialCache(partialCache);
     }
 
     Object.assign(
@@ -140,6 +148,20 @@ const pickBranchFromCache = (cache, [path, ...restPath], destination = []) => {
   return destination
 };
 
+const flushPartialCache = (partialCache, options = {}) => {
+  if (options.recursive) {
+    if (partialCache.nested) {
+      partialCache[SHADOW_KEY] = {};
+
+      Object.keys(partialCache.nested).forEach(key =>
+        flushPartialCache(partialCache.nested[key], options)
+      );
+    }
+  } else {
+    partialCache[SHADOW_KEY] = {};
+  }
+};
+
 const queryStore = {
   add (location) {
     const stateObject = location.state[STATE_CACHE_KEY];
@@ -152,6 +174,10 @@ const queryStore = {
 
     mergeLocationIntoCache(this.cache, parsedPathname, location);
 
+    Object.keys(this.cache)
+      .filter(key => key !== parsedPathname[0])
+      .forEach(key => flushPartialCache(this.cache[key], { recursive: true }));
+
     return this
   },
   clear () {
@@ -163,7 +189,11 @@ const queryStore = {
     const parsedPathname = parsePathname(scope);
     const branch = pickBranchFromCache(this.cache, parsedPathname);
     let queryParams = branch.reduce(
-      (destination, { persisted }) => addQueryParams(destination, persisted),
+      (destination, partialCache) =>
+        addQueryParams(destination, {
+          ...partialCache[SHADOW_KEY],
+          ...partialCache[PERSISTED_KEY]
+        }),
       {}
     );
 
