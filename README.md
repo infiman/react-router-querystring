@@ -1,2 +1,3 @@
-# query-string-router
-Vanilla JavaScript query string state handler
+# querystring-cache
+
+JavaScript querystring store.
