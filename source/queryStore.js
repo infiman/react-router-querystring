@@ -1,8 +1,8 @@
 import memoize from 'fast-memoize'
 
-import { addQueryParams, removeQueryParams } from './helpers/queryString'
+import { addQueryParams, removeQueryParams } from './helpers'
 
-const STATE_CACHE_KEY = '__queryStringCacheStateObject__'
+const STATE_CACHE_KEY = '__queryParamsCacheStateObject__'
 const ROOT_SCOPE = '/'
 const ROOT_WILDCARD = '*'
 const PERSISTED_KEY = 'persisted'

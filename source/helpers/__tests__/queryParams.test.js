@@ -1,4 +1,4 @@
-import { addQueryParams, removeQueryParams } from '../queryString'
+import { addQueryParams, removeQueryParams } from '..'
 
 const QUERY_PARAMS = Object.freeze({
   a: 'true',
@@ -7,7 +7,7 @@ const QUERY_PARAMS = Object.freeze({
 })
 const EMPTY_QUERY_PARAMS = Object.freeze({})
 
-describe('queryString module', () => {
+describe('queryParams module', () => {
   describe('addQueryParams', () => {
     test('with empty objects', () =>
       expect(addQueryParams(EMPTY_QUERY_PARAMS, EMPTY_QUERY_PARAMS)).toEqual(
