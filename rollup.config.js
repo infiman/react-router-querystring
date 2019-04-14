@@ -8,7 +8,7 @@ export default {
   input: './source/index.js',
   external: Object.keys(dependencies),
   output: {
-    file: './build/bundle.js',
+    file: './build/querystring-cache.js',
     format: 'cjs'
   },
   plugins: [commonjs(), nodeResolve(), eslint()]

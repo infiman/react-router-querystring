@@ -1,8 +1,8 @@
 {
-  "name": "querystring-cache",
-  "version": "0.1.0",
+  "name": "@infiman/querystring-cache",
+  "version": "0.9.0",
   "description": "Vanilla JavaScript query string state handler",
-  "main": "source/index.js",
+  "main": "build/querystring-cache.js",
   "scripts": {
     "start": "rollup -c -w",
     "test": "jest --coverage"
