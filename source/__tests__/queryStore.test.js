@@ -1,6 +1,6 @@
 import qs from 'qs'
 
-import { createQueryStore } from '../queryStore'
+import { createQueryStore, PERSISTED_KEY, SHADOW_KEY } from '../queryStore'
 
 const QS_CONFIG = {
   arrayFormat: 'brackets',
@@ -58,13 +58,16 @@ describe('queryStore module', () => {
                     }
                   },
                   nested: {},
-                  persisted: {}
+                  [PERSISTED_KEY]: {},
+                  [SHADOW_KEY]: {}
                 }
               },
-              persisted: {}
+              [PERSISTED_KEY]: {},
+              [SHADOW_KEY]: {}
             }
           },
-          persisted: {}
+          [PERSISTED_KEY]: {},
+          [SHADOW_KEY]: {}
         }
       }))
 

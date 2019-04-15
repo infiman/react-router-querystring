@@ -5,8 +5,8 @@ import { addQueryParams, removeQueryParams } from './helpers'
 const STATE_CACHE_KEY = '__queryParamsCacheStateObject__'
 const ROOT_SCOPE = '/'
 const ROOT_WILDCARD = '*'
-const PERSISTED_KEY = 'persisted'
-const SHADOW_KEY = Symbol('shadow')
+export const PERSISTED_KEY = 'persisted'
+export const SHADOW_KEY = Symbol('shadow')
 
 const parsePathname = memoize(pathname => {
   const [, ...splitPathname] = pathname.split('/')
@@ -59,8 +59,6 @@ const mergeLocationIntoCache = (cache, [path, ...restPath], location) => {
       Object.keys(partialCache.nested).forEach(key =>
         flushPartialCache(partialCache.nested[key], { recursive: true })
       )
-    } else {
-      flushPartialCache(partialCache)
     }
 
     Object.assign(

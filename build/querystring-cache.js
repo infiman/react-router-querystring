@@ -123,8 +123,6 @@ const mergeLocationIntoCache = (cache, [path, ...restPath], location) => {
       Object.keys(partialCache.nested).forEach(key =>
         flushPartialCache(partialCache.nested[key], { recursive: true })
       );
-    } else {
-      flushPartialCache(partialCache);
     }
 
     Object.assign(
