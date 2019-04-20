@@ -1,4 +1,4 @@
-import { addQueryParams, removeQueryParams } from '..'
+import { addQueryParams, removeQueryParams } from '../'
 
 const QUERY_PARAMS = Object.freeze({
   a: 'true',

@@ -4,7 +4,7 @@ import { addQueryParams, removeQueryParams } from './helpers'
 
 const STATE_CACHE_KEY = '__queryParamsCacheStateObject__'
 const ROOT_SCOPE = '/'
-const ROOT_WILDCARD = '*'
+const WILDCARD_SCOPE = '*'
 export const PERSISTED_KEY = 'persisted'
 export const SHADOW_KEY = Symbol('shadow')
 
@@ -19,7 +19,7 @@ const parsePathname = memoize(pathname => {
     return splitPathname
   }
 
-  return ROOT_WILDCARD
+  return WILDCARD_SCOPE
 })
 
 const mergeLocationIntoCache = (cache, [path, ...restPath], location) => {
@@ -57,7 +57,7 @@ const mergeLocationIntoCache = (cache, [path, ...restPath], location) => {
       }
 
       Object.keys(partialCache.nested).forEach(key =>
-        flushPartialCache(partialCache.nested[key], { recursive: true })
+        flushNestedPartialCache(partialCache.nested[key])
       )
     }
 
@@ -82,17 +82,15 @@ const pickBranchFromCache = (cache, [path, ...restPath], destination = []) => {
   return destination
 }
 
-const flushPartialCache = (partialCache, options = {}) => {
-  if (options.recursive) {
-    if (partialCache.nested) {
-      partialCache[SHADOW_KEY] = {}
+const flushPartialCache = partialCache => (partialCache[SHADOW_KEY] = {})
 
-      Object.keys(partialCache.nested).forEach(key =>
-        flushPartialCache(partialCache.nested[key], options)
-      )
-    }
-  } else {
+const flushNestedPartialCache = partialCache => {
+  if (partialCache.nested) {
     partialCache[SHADOW_KEY] = {}
+
+    Object.keys(partialCache.nested).forEach(key =>
+      flushPartialCache(partialCache.nested[key])
+    )
   }
 }
 
@@ -110,7 +108,7 @@ const queryStore = {
 
     Object.keys(this.cache)
       .filter(key => key !== parsedPathname[0])
-      .forEach(key => flushPartialCache(this.cache[key], { recursive: true }))
+      .forEach(key => flushNestedPartialCache(this.cache[key]))
 
     return this
   },
