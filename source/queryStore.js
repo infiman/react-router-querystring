@@ -17,9 +17,9 @@ const parsePathname = memoize(pathname => {
     }
 
     return splitPathname
+  } else {
+    return [WILDCARD_SCOPE]
   }
-
-  return WILDCARD_SCOPE
 })
 
 const mergeLocationIntoCache = (cache, [path, ...restPath], location) => {
@@ -69,17 +69,22 @@ const mergeLocationIntoCache = (cache, [path, ...restPath], location) => {
 }
 
 const pickBranchFromCache = (cache, [path, ...restPath], destination = []) => {
-  const partialCache = cache[path]
+  if (path) {
+    const partialWildcardCache = cache[WILDCARD_SCOPE]
+    const partialCache = cache[path]
 
-  if (path && cache[path]) {
+    if (partialWildcardCache && partialWildcardCache.location) {
+      destination.push(partialWildcardCache)
+    }
+
     if (partialCache.location) {
       destination.push(partialCache)
     }
 
     return pickBranchFromCache(partialCache.nested, restPath, destination)
+  } else {
+    return destination
   }
-
-  return destination
 }
 
 const flushPartialCache = partialCache => (partialCache[SHADOW_KEY] = {})
@@ -96,7 +101,7 @@ const flushNestedPartialCache = partialCache => {
 
 const queryStore = {
   add (location) {
-    const stateObject = location.state[STATE_CACHE_KEY]
+    const stateObject = location.state && location.state[STATE_CACHE_KEY]
 
     if (!stateObject) {
       return this

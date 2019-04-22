@@ -87,7 +87,10 @@ describe('queryStore module', () => {
           .clear().cache
       ).toEqual({}))
 
-    test('resolveQueryString', () => {
+    test('add without state object', () =>
+      expect(queryStore.add({ pathname: '/', search: '' }).cache).toEqual({}))
+
+    test('add -> resolveQueryString', () => {
       queryStore.add({
         pathname: '/path',
         search: '?f=b',
@@ -122,6 +125,17 @@ describe('queryStore module', () => {
         }
       })
       queryStore.add({
+        pathname: '/path/:param',
+        search: '?fo=ba&arr[]=foo&arr[]=bar',
+        state: {
+          ...queryStore.createStateObject({
+            persist: false,
+            scope: '/path/:param',
+            mutation: {}
+          })
+        }
+      })
+      queryStore.add({
         pathname: '/pathname/detached',
         search: '?foo=bar',
         state: {
@@ -132,8 +146,52 @@ describe('queryStore module', () => {
           })
         }
       })
+      queryStore.add({
+        pathname: '/pathname/wildcard',
+        search: '?foo=bar&wild=card',
+        state: {
+          ...queryStore.createStateObject({
+            persist: true,
+            scope: '/pathname/*',
+            mutation: { add: { wild: 'card' } }
+          })
+        }
+      })
+      queryStore.add({
+        pathname: '/',
+        search: '?ro=ot',
+        state: {
+          ...queryStore.createStateObject({
+            persist: true,
+            scope: '/',
+            mutation: { add: { ro: 'ot' } }
+          })
+        }
+      })
+      queryStore.add({
+        pathname: '',
+        search: '?wild=card',
+        state: {
+          ...queryStore.createStateObject({
+            persist: true,
+            scope: '',
+            mutation: { add: { wild: 'card', to: 'remove' } }
+          })
+        }
+      })
+      queryStore.add({
+        pathname: '',
+        search: '?wild=card',
+        state: {
+          ...queryStore.createStateObject({
+            persist: true,
+            scope: '',
+            mutation: { add: { wild: 'card' }, remove: { to: undefined } }
+          })
+        }
+      })
 
-      expect(queryStore.resolveQueryString('/path')).toEqual('?f=b')
+      expect(queryStore.resolveQueryString('/path')).toEqual('?wild=card&f=b')
       expect(
         queryStore.resolveQueryString('/path/:param', {
           add: {
@@ -145,13 +203,14 @@ describe('queryStore module', () => {
             arr: ['bar']
           }
         })
-      ).toEqual('?fo=ba&arr%5B%5D=foo&arr%5B%5D=bla&bla=string')
+      ).toEqual('?wild=card&fo=ba&arr%5B%5D=foo&arr%5B%5D=bla&bla=string')
       expect(queryStore.resolveQueryString('/path/:param/:id')).toEqual(
-        '?f=b&fo=ba&arr%5B%5D=foo&arr%5B%5D=bar&foo=bar'
+        '?wild=card&f=b&fo=ba&arr%5B%5D=foo&arr%5B%5D=bar&foo=bar'
       )
       expect(queryStore.resolveQueryString('/pathname/detached')).toEqual(
-        '?foo=bar'
+        '?wild=card&foo=bar'
       )
+      expect(queryStore.resolveQueryString('/')).toEqual('?wild=card&ro=ot')
     })
   })
 })
