@@ -2,12 +2,13 @@
   "name": "@infiman/querystring-cache",
   "version": "0.9.2",
   "description": "Vanilla JavaScript query string state handler",
-  "main": "build/querystring-cache.js",
   "scripts": {
     "build": "rollup -c",
     "start": "npm run build -- -w",
     "test": "jest --coverage",
-    "prepublish": "npm test && npm run build"
+    "preversion": "npm test",
+    "version": "npm run build && git add -A ./build",
+    "postversion": "npm publish"
   },
   "repository": {
     "type": "git",
@@ -17,7 +18,8 @@
     "querystring",
     "query",
     "string",
-    "cache"
+    "cache",
+    "routing"
   ],
   "author": "Igor Shabat",
   "license": "MIT",
