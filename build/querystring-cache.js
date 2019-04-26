@@ -73,7 +73,7 @@ const PERSISTED_KEY = 'persisted';
 const SHADOW_KEY = Symbol('shadow');
 
 const parsePathname = memoize(pathname => {
-  const [, ...splitPathname] = pathname.split('/');
+  const [, ...splitPathname] = (pathname || '').split('/');
 
   if (splitPathname.length) {
     if (!splitPathname[0]) {
@@ -86,7 +86,7 @@ const parsePathname = memoize(pathname => {
   }
 });
 
-const mergeLocationIntoCache = (cache, [path, ...restPath], location) => {
+const mergeMutationIntoCache = (cache, [path, ...restPath], payload) => {
   const occurrence = Object.keys(cache).find(key => key === path);
 
   if (path) {
@@ -101,23 +101,20 @@ const mergeLocationIntoCache = (cache, [path, ...restPath], location) => {
     const partialCache = cache[occurrence || path];
 
     if (!restPath.length) {
-      const stateObject = location.state[STATE_CACHE_KEY];
-      const strategy = stateObject.persist ? PERSISTED_KEY : SHADOW_KEY;
+      const { persist, add, remove } = payload;
+      const strategy = persist ? PERSISTED_KEY : SHADOW_KEY;
 
-      partialCache.location = location;
+      partialCache.mutated = true;
 
-      if (stateObject.mutation.remove) {
+      if (remove) {
         partialCache[strategy] = removeQueryParams(
           partialCache[strategy],
-          stateObject.mutation.remove
+          remove
         );
       }
 
-      if (stateObject.mutation.add) {
-        partialCache[strategy] = addQueryParams(
-          partialCache[strategy],
-          stateObject.mutation.add
-        );
+      if (add) {
+        partialCache[strategy] = addQueryParams(partialCache[strategy], add);
       }
 
       Object.keys(partialCache.nested).forEach(key =>
@@ -127,7 +124,7 @@ const mergeLocationIntoCache = (cache, [path, ...restPath], location) => {
 
     Object.assign(
       partialCache.nested,
-      mergeLocationIntoCache(partialCache.nested, restPath, location)
+      mergeMutationIntoCache(partialCache.nested, restPath, payload)
     );
   }
 };
@@ -137,11 +134,11 @@ const pickBranchFromCache = (cache, [path, ...restPath], destination = []) => {
     const partialWildcardCache = cache[WILDCARD_SCOPE];
     const partialCache = cache[path];
 
-    if (partialWildcardCache && partialWildcardCache.location) {
+    if (partialWildcardCache && partialWildcardCache.mutated) {
       destination.push(partialWildcardCache);
     }
 
-    if (partialCache.location) {
+    if (partialCache && partialCache.mutated) {
       destination.push(partialCache);
     }
 
@@ -164,19 +161,23 @@ const flushNestedPartialCache = partialCache => {
 };
 
 const queryStore = {
-  add (location) {
-    const stateObject = location.state && location.state[STATE_CACHE_KEY];
+  add ({ pathname, state }) {
+    const { mutations } = (state && state[STATE_CACHE_KEY]) || {};
 
-    if (!stateObject) {
+    if (!mutations) {
       return this
     }
 
-    const parsedPathname = parsePathname(stateObject.scope);
-
-    mergeLocationIntoCache(this.cache, parsedPathname, location);
+    mutations.forEach(({ scope }, i) =>
+      mergeMutationIntoCache(
+        this.cache,
+        parsePathname(scope || pathname),
+        mutations[i]
+      )
+    );
 
     Object.keys(this.cache)
-      .filter(key => key !== parsedPathname[0])
+      .filter(key => key !== parsePathname(pathname)[0])
       .forEach(key => flushNestedPartialCache(this.cache[key]));
 
     return this
@@ -186,7 +187,7 @@ const queryStore = {
 
     return this
   },
-  resolveQueryString (scope, { add, remove } = {}) {
+  resolveQueryString (scope, mutations = []) {
     const parsedPathname = parsePathname(scope);
     const branch = pickBranchFromCache(this.cache, parsedPathname);
     let queryParams = branch.reduce(
@@ -198,24 +199,23 @@ const queryStore = {
       {}
     );
 
-    if (remove) {
-      queryParams = removeQueryParams(queryParams, remove);
-    }
+    mutations.forEach(({ add, remove }, i) => {
+      if (remove) {
+        queryParams = removeQueryParams(queryParams, remove);
+      }
 
-    if (add) {
-      queryParams = addQueryParams(queryParams, add);
-    }
+      if (add) {
+        queryParams = addQueryParams(queryParams, add);
+      }
+    });
 
     return this.stringifyQueryParams(queryParams)
   }
 };
 
-const createStateObject = payload => ({
+const createStateObject = ({ mutations } = {}) => ({
   [STATE_CACHE_KEY]: {
-    persist: false,
-    scope: ROOT_SCOPE,
-    mutation: {},
-    ...payload
+    mutations: mutations || []
   }
 });
 

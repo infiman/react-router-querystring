@@ -36,8 +36,7 @@ describe('queryStore module', () => {
           search: '?foo=bar',
           state: {
             ...queryStore.createStateObject({
-              persist: true,
-              scope: '/path/:param/:id'
+              mutations: [{ add: { foo: 'bar' } }]
             })
           }
         }).cache
@@ -47,19 +46,12 @@ describe('queryStore module', () => {
             ':param': {
               nested: {
                 ':id': {
-                  location: {
-                    pathname: '/path/:param/:id',
-                    search: '?foo=bar',
-                    state: {
-                      ...queryStore.createStateObject({
-                        persist: true,
-                        scope: '/path/:param/:id'
-                      })
-                    }
-                  },
+                  mutated: true,
                   nested: {},
                   [PERSISTED_KEY]: {},
-                  [SHADOW_KEY]: {}
+                  [SHADOW_KEY]: {
+                    foo: 'bar'
+                  }
                 }
               },
               [PERSISTED_KEY]: {},
@@ -78,10 +70,7 @@ describe('queryStore module', () => {
             pathname: '/path',
             search: '?foo=bar',
             state: {
-              ...queryStore.createStateObject({
-                persist: true,
-                scope: '/path'
-              })
+              ...queryStore.createStateObject()
             }
           })
           .clear().cache
@@ -96,9 +85,7 @@ describe('queryStore module', () => {
         search: '?f=b',
         state: {
           ...queryStore.createStateObject({
-            persist: true,
-            scope: '/path',
-            mutation: { add: { f: 'b' } }
+            mutations: [{ persist: true, add: { f: 'b' } }]
           })
         }
       })
@@ -107,9 +94,12 @@ describe('queryStore module', () => {
         search: '?fo=ba&arr[]=foo&arr[]=bar',
         state: {
           ...queryStore.createStateObject({
-            persist: true,
-            scope: '/path/:param',
-            mutation: { add: { fo: 'ba', arr: ['foo', 'bar'] } }
+            mutations: [
+              {
+                persist: true,
+                add: { fo: 'ba', arr: ['foo', 'bar'] }
+              }
+            ]
           })
         }
       })
@@ -118,9 +108,7 @@ describe('queryStore module', () => {
         search: '?foo=bar',
         state: {
           ...queryStore.createStateObject({
-            persist: true,
-            scope: '/path/:param/:id',
-            mutation: { add: { foo: 'bar' } }
+            mutations: [{ persist: true, add: { foo: 'bar' } }]
           })
         }
       })
@@ -128,11 +116,7 @@ describe('queryStore module', () => {
         pathname: '/path/:param',
         search: '?fo=ba&arr[]=foo&arr[]=bar',
         state: {
-          ...queryStore.createStateObject({
-            persist: false,
-            scope: '/path/:param',
-            mutation: {}
-          })
+          ...queryStore.createStateObject()
         }
       })
       queryStore.add({
@@ -140,9 +124,7 @@ describe('queryStore module', () => {
         search: '?foo=bar',
         state: {
           ...queryStore.createStateObject({
-            persist: true,
-            scope: '/pathname/detached',
-            mutation: { add: { foo: 'bar' } }
+            mutations: [{ persist: true, add: { foo: 'bar' } }]
           })
         }
       })
@@ -151,9 +133,13 @@ describe('queryStore module', () => {
         search: '?foo=bar&wild=card',
         state: {
           ...queryStore.createStateObject({
-            persist: true,
-            scope: '/pathname/*',
-            mutation: { add: { wild: 'card' } }
+            mutations: [
+              {
+                persist: true,
+                scope: '/pathname/*',
+                add: { wild: 'card' }
+              }
+            ]
           })
         }
       })
@@ -162,9 +148,7 @@ describe('queryStore module', () => {
         search: '?ro=ot',
         state: {
           ...queryStore.createStateObject({
-            persist: true,
-            scope: '/',
-            mutation: { add: { ro: 'ot' } }
+            mutations: [{ persist: true, add: { ro: 'ot' } }]
           })
         }
       })
@@ -173,9 +157,7 @@ describe('queryStore module', () => {
         search: '?wild=card',
         state: {
           ...queryStore.createStateObject({
-            persist: true,
-            scope: '',
-            mutation: { add: { wild: 'card', to: 'remove' } }
+            mutations: [{ persist: true, add: { wild: 'card', to: 'remove' } }]
           })
         }
       })
@@ -184,25 +166,32 @@ describe('queryStore module', () => {
         search: '?wild=card',
         state: {
           ...queryStore.createStateObject({
-            persist: true,
-            scope: '',
-            mutation: { add: { wild: 'card' }, remove: { to: undefined } }
+            mutations: [
+              {
+                persist: true,
+                add: { wild: 'card' },
+                remove: { to: undefined }
+              }
+            ]
           })
         }
       })
 
       expect(queryStore.resolveQueryString('/path')).toEqual('?wild=card&f=b')
       expect(
-        queryStore.resolveQueryString('/path/:param', {
-          add: {
-            bla: 'string',
-            arr: ['bla']
-          },
-          remove: {
-            f: undefined,
-            arr: ['bar']
+        queryStore.resolveQueryString('/path/:param', [
+          {
+            persist: true,
+            add: {
+              bla: 'string',
+              arr: ['bla']
+            },
+            remove: {
+              f: undefined,
+              arr: ['bar']
+            }
           }
-        })
+        ])
       ).toEqual('?wild=card&fo=ba&arr%5B%5D=foo&arr%5B%5D=bla&bla=string')
       expect(queryStore.resolveQueryString('/path/:param/:id')).toEqual(
         '?wild=card&f=b&fo=ba&arr%5B%5D=foo&arr%5B%5D=bar&foo=bar'
