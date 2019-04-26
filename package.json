@@ -8,7 +8,7 @@
     "test": "jest --coverage",
     "preversion": "npm test",
     "version": "npm run build && git add -A ./build",
-    "postversion": "npm publish"
+    "postversion": "git push && git push --tags && npm publish"
   },
   "repository": {
     "type": "git",
