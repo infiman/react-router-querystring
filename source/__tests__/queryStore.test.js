@@ -42,10 +42,13 @@ describe('queryStore module', () => {
         }).cache
       ).toEqual({
         path: {
+          path: 'path',
           nested: {
             ':param': {
+              path: ':param',
               nested: {
                 ':id': {
+                  path: ':id',
                   mutated: true,
                   nested: {},
                   [PERSISTED_KEY]: {},
