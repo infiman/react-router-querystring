@@ -28,6 +28,7 @@ const mergeMutationIntoCache = (cache, [path, ...restPath], payload) => {
   if (path) {
     if (!occurrence) {
       cache[path] = {
+        path,
         nested: {},
         [PERSISTED_KEY]: {},
         [SHADOW_KEY]: {}
@@ -78,7 +79,9 @@ const pickBranchFromCache = (cache, [path, ...restPath], destination = []) => {
       destination.push(partialCache)
     }
 
-    return pickBranchFromCache(partialCache.nested, restPath, destination)
+    return partialCache
+      ? pickBranchFromCache(partialCache.nested, restPath, destination)
+      : destination
   } else {
     return destination
   }
@@ -113,7 +116,7 @@ const queryStore = {
     )
 
     Object.keys(this.cache)
-      .filter(key => key !== parsePathname(pathname)[0])
+      .filter(key => !['*', parsePathname(pathname)[0]].includes(key))
       .forEach(key => flushNestedPartialCache(this.cache[key]))
 
     return this
@@ -135,7 +138,7 @@ const queryStore = {
       {}
     )
 
-    mutations.forEach(({ add, remove }, i) => {
+    mutations.forEach(({ add, remove }) => {
       if (remove) {
         queryParams = removeQueryParams(queryParams, remove)
       }
