@@ -6,8 +6,8 @@
     "build": "rollup -c",
     "start": "npm run build -- -w",
     "test": "jest --coverage",
-    "preversion": "npm test",
-    "version": "npm run build && git add -A ./build",
+    "preversion": "npm test && npm run build",
+    "version": "git diff --cached --exit-code",
     "postversion": "git push && git push --tags && npm publish"
   },
   "repository": {
