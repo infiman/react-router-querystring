@@ -66,7 +66,7 @@ const removeQueryParams = memoize((queryParams, params) =>
   )
 );
 
-const STATE_CACHE_KEY = '__queryParamsCacheStateObject__';
+const QUERYSTRING_CACHE_STATE_KEY = '__querystringCacheStateObject__';
 const ROOT_SCOPE = '/';
 const WILDCARD_SCOPE = '*';
 const PERSISTED_KEY = 'persisted';
@@ -165,7 +165,7 @@ const flushNestedPartialCache = partialCache => {
 
 const queryStore = {
   add ({ pathname, state }) {
-    const { mutations } = (state && state[STATE_CACHE_KEY]) || {};
+    const { mutations } = (state && state[QUERYSTRING_CACHE_STATE_KEY]) || {};
 
     if (!mutations) {
       return this
@@ -213,17 +213,21 @@ const queryStore = {
     });
 
     return this.stringifyQueryParams(queryParams)
+  },
+  toString () {
+    return JSON.stringify(this.cache)
   }
 };
 
 const createStateObject = ({ mutations } = {}) => ({
-  [STATE_CACHE_KEY]: {
+  [QUERYSTRING_CACHE_STATE_KEY]: {
     mutations: mutations || []
   }
 });
 
 let store;
 const createQueryStore = ({
+  initialCache,
   parseQueryString,
   stringifyQueryParams
 } = {}) => {
@@ -237,7 +241,7 @@ const createQueryStore = ({
       },
       {
         cache: {
-          value: {}
+          value: initialCache || {}
         }
       }
     );
@@ -246,6 +250,8 @@ const createQueryStore = ({
   return store
 };
 
+exports.PERSISTED_KEY = PERSISTED_KEY;
+exports.SHADOW_KEY = SHADOW_KEY;
 exports.addQueryParams = addQueryParams;
 exports.createQueryStore = createQueryStore;
 exports.removeQueryParams = removeQueryParams;

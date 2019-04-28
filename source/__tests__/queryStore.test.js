@@ -1,6 +1,6 @@
 import qs from 'qs'
 
-import { createQueryStore, PERSISTED_KEY, SHADOW_KEY } from '../queryStore'
+import { createQueryStore, PERSISTED_KEY, SHADOW_KEY } from '../'
 
 const QS_CONFIG = {
   arrayFormat: 'brackets',

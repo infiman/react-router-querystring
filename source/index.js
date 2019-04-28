@@ -1,4 +1,10 @@
-import { createQueryStore } from './queryStore'
+import { createQueryStore, PERSISTED_KEY, SHADOW_KEY } from './queryStore'
 import { addQueryParams, removeQueryParams } from './helpers'
 
-export { createQueryStore, addQueryParams, removeQueryParams }
+export {
+  createQueryStore,
+  PERSISTED_KEY,
+  SHADOW_KEY,
+  addQueryParams,
+  removeQueryParams
+}

@@ -2,7 +2,7 @@ import memoize from 'fast-memoize'
 
 import { addQueryParams, removeQueryParams } from './helpers'
 
-const STATE_CACHE_KEY = '__queryParamsCacheStateObject__'
+const QUERYSTRING_CACHE_STATE_KEY = '__querystringCacheStateObject__'
 const ROOT_SCOPE = '/'
 const WILDCARD_SCOPE = '*'
 export const PERSISTED_KEY = 'persisted'
@@ -101,7 +101,7 @@ const flushNestedPartialCache = partialCache => {
 
 const queryStore = {
   add ({ pathname, state }) {
-    const { mutations } = (state && state[STATE_CACHE_KEY]) || {}
+    const { mutations } = (state && state[QUERYSTRING_CACHE_STATE_KEY]) || {}
 
     if (!mutations) {
       return this
@@ -149,17 +149,21 @@ const queryStore = {
     })
 
     return this.stringifyQueryParams(queryParams)
+  },
+  toString () {
+    return JSON.stringify(this.cache)
   }
 }
 
 const createStateObject = ({ mutations } = {}) => ({
-  [STATE_CACHE_KEY]: {
+  [QUERYSTRING_CACHE_STATE_KEY]: {
     mutations: mutations || []
   }
 })
 
 let store
 export const createQueryStore = ({
+  initialCache,
   parseQueryString,
   stringifyQueryParams
 } = {}) => {
@@ -173,7 +177,7 @@ export const createQueryStore = ({
       },
       {
         cache: {
-          value: {}
+          value: initialCache || {}
         }
       }
     )

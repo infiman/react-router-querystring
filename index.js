@@ -1,3 +1,13 @@
 'use strict'
 
-module.exports = require('./build/querystring-cache.js')
+const {
+  createQueryStore,
+  addQueryParams,
+  removeQueryParams
+} = require('./build/querystring-cache.js')
+
+module.exports = {
+  createQueryStore,
+  addQueryParams,
+  removeQueryParams
+}
