@@ -6,85 +6,109 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var memoize = _interopDefault(require('fast-memoize'));
 
-const addQueryParams = memoize((queryParams, params) =>
-  Object.keys(params || {}).reduce(
-    (destination, key) => {
-      const target = destination[key];
-      const patch = params[key];
-      const payload = {};
+const isPlainObject = maybeObject =>
+  maybeObject &&
+  typeof maybeObject === 'object' &&
+  (typeof maybeObject.constructor !== 'function' ||
+    maybeObject.constructor.name === 'Object');
 
-      if (Array.isArray(patch) && Array.isArray(target)) {
-        payload[key] = [...target, ...patch];
-      } else if (
-        patch &&
-        typeof patch === 'object' &&
-        target &&
-        typeof target === 'object'
-      ) {
-        payload[key] = addQueryParams(target, patch);
-      } else if (typeof patch !== 'undefined') {
-        payload[key] = patch;
-      } else {
-        payload[key] = target;
+const merge = (target, patch, merger) => {
+  if (!isPlainObject(target)) {
+    throw new Error(
+      "Target is not a plain object. Can't merge into a not 'plain object like' structure!"
+    )
+  }
+
+  const patches = Array.isArray(patch) ? patch : [patch];
+  let merged = target;
+
+  patches.forEach(currentPatch => {
+    if (!isPlainObject(currentPatch)) {
+      return
+    }
+
+    const keysToPatch = Object.keys(currentPatch);
+
+    keysToPatch.forEach(keyToPatch => {
+      const hasValue = Object.hasOwnProperty.call(target, keyToPatch);
+      const oldValue = target[keyToPatch];
+      const newValue = currentPatch[keyToPatch];
+      const mergedValue = merger
+        ? merger(oldValue, newValue, keyToPatch)
+        : newValue;
+
+      if (!hasValue || mergedValue !== oldValue) {
+        if (merged === target) {
+          merged = Object.assign({}, target);
+        }
+
+        merged[keyToPatch] = mergedValue;
       }
+    });
+  });
 
-      return {
-        ...destination,
-        ...payload
-      }
-    },
-    { ...(queryParams || {}) }
-  )
-);
+  return merged
+};
 
-const removeQueryParams = memoize((queryParams, params) =>
-  Object.keys(params || {}).reduce(
-    (destination, key) => {
-      const target = queryParams[key];
-      const patch = params[key];
-      const payload = {};
+const mergeDeep = (target, patch, merger) => {
+  return merge(target, patch, (oldValue, newValue, key) => {
+    if (isPlainObject(oldValue) && isPlainObject(newValue)) {
+      return mergeDeep(oldValue, newValue, merger)
+    }
 
-      if (Array.isArray(patch) && Array.isArray(target)) {
-        payload[key] = target.filter((item, i) => !patch.includes(item));
-      } else if (
-        patch &&
-        typeof patch === 'object' &&
-        target &&
-        typeof target === 'object'
-      ) {
-        payload[key] = removeQueryParams(target, patch);
-      } else if (typeof patch === 'undefined') {
-        delete destination[key];
-      }
+    return merger ? merger(oldValue, newValue, key) : newValue
+  })
+};
 
-      return {
-        ...destination,
-        ...payload
-      }
-    },
-    { ...(queryParams || {}) }
-  )
-);
+const parsePathname = pathname => {
+  if (typeof pathname !== 'string') {
+    throw new Error(
+      `Pathname is not valid. Received: ${Object.prototype.toString.call(
+        pathname
+      )}`
+    )
+  }
+
+  const [dirty, ...splitPathname] = pathname.split('/');
+
+  if (dirty || !splitPathname.length) {
+    throw new Error("Pathname is not valid. It should start with '/'!")
+  }
+
+  if (!splitPathname[0]) {
+    splitPathname[0] = '/';
+  }
+
+  return splitPathname
+};
+
+const addStrategyMerger = (oldValue, newValue) => {
+  if (Array.isArray(oldValue) && Array.isArray(newValue)) {
+    return [...oldValue, ...newValue]
+  }
+
+  return newValue
+};
+
+const removeStrategyMerger = (oldValue, newValue) => {
+  if (Array.isArray(oldValue) && Array.isArray(newValue)) {
+    return oldValue.filter((item, i) => !newValue.includes(item))
+  }
+
+  return newValue
+};
+
+const mutateQueryParams = strategy =>
+  memoize((queryParams, params) => mergeDeep(queryParams, params, strategy));
+
+const addQueryParams = mutateQueryParams(addStrategyMerger);
+
+const removeQueryParams = mutateQueryParams(removeStrategyMerger);
 
 const QUERYSTRING_CACHE_STATE_KEY = '__querystringCacheStateObject__';
-const ROOT_SCOPE = '/';
 const WILDCARD_SCOPE = '*';
 const PERSISTED_KEY = 'persisted';
 const SHADOW_KEY = Symbol('shadow');
-
-const parsePathname = memoize(pathname => {
-  const [, ...splitPathname] = (pathname || '').split('/');
-
-  if (splitPathname.length) {
-    if (!splitPathname[0]) {
-      splitPathname[0] = ROOT_SCOPE;
-    }
-
-    return splitPathname
-  } else {
-    return [WILDCARD_SCOPE]
-  }
-});
 
 const mergeMutationIntoCache = (cache, [path, ...restPath], payload) => {
   const occurrence = Object.keys(cache).find(key => key === path);
@@ -180,7 +204,9 @@ const queryStore = {
     );
 
     Object.keys(this.cache)
-      .filter(key => !['*', parsePathname(pathname)[0]].includes(key))
+      .filter(
+        key => ![WILDCARD_SCOPE, parsePathname(pathname)[0]].includes(key)
+      )
       .forEach(key => flushNestedPartialCache(this.cache[key]));
 
     return this

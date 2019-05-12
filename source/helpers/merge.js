@@ -1,4 +1,4 @@
-import { isPlainObject } from './'
+import { isPlainObject } from './isPlainObject'
 
 export const merge = (target, patch, merger) => {
   if (!isPlainObject(target)) {

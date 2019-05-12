@@ -1,6 +1,6 @@
 import memoize from 'fast-memoize'
 
-import { mergeDeep } from './'
+import { mergeDeep } from './merge'
 
 const addStrategyMerger = (oldValue, newValue) => {
   if (Array.isArray(oldValue) && Array.isArray(newValue)) {
