@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`parsePathname module parsePathname empty invocation 1`] = `"Pathname is not valid. Received: [object Undefined]"`;
+
+exports[`parsePathname module parsePathname invalid pathname 1`] = `"Pathname is not valid. It should start with '/'!"`;

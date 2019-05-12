@@ -156,22 +156,29 @@ describe('queryStore module', () => {
         }
       })
       queryStore.add({
-        pathname: '',
-        search: '?wild=card',
-        state: {
-          ...queryStore.createStateObject({
-            mutations: [{ persist: true, add: { wild: 'card', to: 'remove' } }]
-          })
-        }
-      })
-      queryStore.add({
-        pathname: '',
+        pathname: '/',
         search: '?wild=card',
         state: {
           ...queryStore.createStateObject({
             mutations: [
               {
                 persist: true,
+                scope: '/*',
+                add: { wild: 'card', to: 'remove' }
+              }
+            ]
+          })
+        }
+      })
+      queryStore.add({
+        pathname: '/',
+        search: '?wild=card',
+        state: {
+          ...queryStore.createStateObject({
+            mutations: [
+              {
+                persist: true,
+                scope: '/*',
                 add: { wild: 'card' },
                 remove: { to: undefined }
               }

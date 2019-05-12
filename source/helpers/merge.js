@@ -3,7 +3,7 @@ import { isPlainObject } from './'
 export const merge = (target, patch, merger) => {
   if (!isPlainObject(target)) {
     throw new Error(
-      "Target is not a plain object. Can't merge into a not plain object like structure!"
+      "Target is not a plain object. Can't merge into a not 'plain object like' structure!"
     )
   }
 

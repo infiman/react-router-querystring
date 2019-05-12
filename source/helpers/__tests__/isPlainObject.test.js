@@ -2,6 +2,8 @@ import { isPlainObject } from '../'
 
 describe('isPlainObject module', () => {
   describe('isPlainObject', () => {
+    test('empty invocation', () => expect(isPlainObject()).toBeFalsy())
+
     test('plain object', () => expect(isPlainObject({})).toBeTruthy())
 
     test('plain object without prototype chain', () =>

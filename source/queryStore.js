@@ -1,26 +1,9 @@
-import memoize from 'fast-memoize'
-
-import { addQueryParams, removeQueryParams } from './helpers'
+import { parsePathname, addQueryParams, removeQueryParams } from './helpers'
 
 const QUERYSTRING_CACHE_STATE_KEY = '__querystringCacheStateObject__'
-const ROOT_SCOPE = '/'
 const WILDCARD_SCOPE = '*'
 export const PERSISTED_KEY = 'persisted'
 export const SHADOW_KEY = Symbol('shadow')
-
-const parsePathname = memoize(pathname => {
-  const [, ...splitPathname] = (pathname || '').split('/')
-
-  if (splitPathname.length) {
-    if (!splitPathname[0]) {
-      splitPathname[0] = ROOT_SCOPE
-    }
-
-    return splitPathname
-  } else {
-    return [WILDCARD_SCOPE]
-  }
-})
 
 const mergeMutationIntoCache = (cache, [path, ...restPath], payload) => {
   const occurrence = Object.keys(cache).find(key => key === path)
@@ -116,7 +99,9 @@ const queryStore = {
     )
 
     Object.keys(this.cache)
-      .filter(key => !['*', parsePathname(pathname)[0]].includes(key))
+      .filter(
+        key => ![WILDCARD_SCOPE, parsePathname(pathname)[0]].includes(key)
+      )
       .forEach(key => flushNestedPartialCache(this.cache[key]))
 
     return this
