@@ -27,6 +27,11 @@ describe('update module', () => {
         a: 'updated'
       }))
 
+    test('empty plain object', () =>
+      expect(updateDeep({}, ['a', 'b', 'c'], (_, key) => key)).toEqual({
+        a: { b: { c: 'c' } }
+      }))
+
     test('nested plain object', () =>
       expect(
         updateDeep({ a: { b: { c: 'c' } } }, ['a', 'b', 'c'], () => 'updated')

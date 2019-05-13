@@ -25,7 +25,7 @@ export const update = (target, path, updater) => {
 
   const hasValue = Object.prototype.hasOwnProperty.call(target, path)
   const oldValue = target[path]
-  const newValue = updater(oldValue)
+  const newValue = updater(oldValue, path)
 
   if (!hasValue || oldValue !== newValue) {
     return Object.assign({}, target, { [path]: newValue })
