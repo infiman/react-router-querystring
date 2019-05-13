@@ -6,6 +6,7 @@ import {
   addQueryParams,
   removeQueryParams
 } from './queryParams'
+import { update, updateDeep } from './update'
 
 export {
   isPlainObject,
@@ -14,5 +15,7 @@ export {
   parsePathname,
   mutateQueryParams,
   addQueryParams,
-  removeQueryParams
+  removeQueryParams,
+  update,
+  updateDeep
 }
