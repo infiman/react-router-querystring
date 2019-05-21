@@ -105,54 +105,98 @@ const addQueryParams = mutateQueryParams(addStrategyMerger);
 
 const removeQueryParams = mutateQueryParams(removeStrategyMerger);
 
+const update = (target, path, updater) => {
+  if (!isPlainObject(target)) {
+    throw new Error(
+      "Target is not a plain object. Can't update a not 'plain object like' structure!"
+    )
+  }
+
+  if (!path || typeof path !== 'string') {
+    throw new Error(
+      `Path is not valid. Expecting: string! Received: ${Object.prototype.toString.call(
+        path
+      )}.`
+    )
+  }
+
+  if (!updater || typeof updater !== 'function') {
+    throw new Error(
+      `Updater is not valid. Expecting: function! Received: ${Object.prototype.toString.call(
+        updater
+      )}.`
+    )
+  }
+
+  const hasValue = Object.prototype.hasOwnProperty.call(target, path);
+  const oldValue = target[path];
+  const newValue = updater(oldValue, path);
+
+  if (!hasValue || oldValue !== newValue) {
+    return Object.assign({}, target, { [path]: newValue })
+  }
+
+  return target
+};
+
+const updateDeep = (target, path, updater, missingNodeResolver) => {
+  if (!isPlainObject(target)) {
+    throw new Error(
+      "Target is not a plain object. Can't update a not 'plain object like' structure!"
+    )
+  }
+
+  if (!path || !Array.isArray(path)) {
+    throw new Error(
+      `Path is not valid. Expecting: array! Received: ${Object.prototype.toString.call(
+        path
+      )}.`
+    )
+  }
+
+  if (!updater || typeof updater !== 'function') {
+    throw new Error(
+      `Updater is not valid. Expecting: function! Received: ${Object.prototype.toString.call(
+        updater
+      )}.`
+    )
+  }
+
+  let resolveMissingNode = missingNodeResolver || (() => ({}));
+  let updated = Object.assign({}, target);
+  let currentNode = updated;
+  let previousNode;
+
+  for (let i = 0, length = path.length; i < length; i++) {
+    if (i === length - 1) {
+      if (previousNode) {
+        const newNode = update(currentNode, path[i], updater);
+
+        if (currentNode === newNode) {
+          return target
+        }
+
+        previousNode[path[i - 1]] = newNode;
+      } else {
+        return update(target, path[i], updater)
+      }
+    } else {
+      currentNode[path[i]] = Object.assign(
+        resolveMissingNode(path[i]),
+        currentNode[path[i]]
+      );
+      previousNode = currentNode;
+      currentNode = currentNode[path[i]];
+    }
+  }
+
+  return updated
+};
+
 const QUERYSTRING_CACHE_STATE_KEY = '__querystringCacheStateObject__';
 const WILDCARD_SCOPE = '*';
 const PERSISTED_KEY = 'persisted';
 const SHADOW_KEY = Symbol('shadow');
-
-const mergeMutationIntoCache = (cache, [path, ...restPath], payload) => {
-  const occurrence = Object.keys(cache).find(key => key === path);
-
-  if (path) {
-    if (!occurrence) {
-      cache[path] = {
-        path,
-        nested: {},
-        [PERSISTED_KEY]: {},
-        [SHADOW_KEY]: {}
-      };
-    }
-
-    const partialCache = cache[occurrence || path];
-
-    if (!restPath.length) {
-      const { persist, add, remove } = payload;
-      const strategy = persist ? PERSISTED_KEY : SHADOW_KEY;
-
-      partialCache.mutated = true;
-
-      if (remove) {
-        partialCache[strategy] = removeQueryParams(
-          partialCache[strategy],
-          remove
-        );
-      }
-
-      if (add) {
-        partialCache[strategy] = addQueryParams(partialCache[strategy], add);
-      }
-
-      Object.keys(partialCache.nested).forEach(key =>
-        flushNestedPartialCache(partialCache.nested[key])
-      );
-    }
-
-    Object.assign(
-      partialCache.nested,
-      mergeMutationIntoCache(partialCache.nested, restPath, payload)
-    );
-  }
-};
 
 const pickBranchFromCache = (cache, [path, ...restPath], destination = []) => {
   if (path) {
@@ -175,16 +219,30 @@ const pickBranchFromCache = (cache, [path, ...restPath], destination = []) => {
   }
 };
 
-const flushPartialCache = partialCache => (partialCache[SHADOW_KEY] = {});
+const createPartialCache = partialCache => ({
+  nested: {},
+  [PERSISTED_KEY]: {},
+  [SHADOW_KEY]: {},
+  ...partialCache
+});
 
-const flushNestedPartialCache = partialCache => {
-  if (partialCache.nested) {
-    partialCache[SHADOW_KEY] = {};
-
-    Object.keys(partialCache.nested).forEach(key =>
-      flushPartialCache(partialCache.nested[key])
-    );
-  }
+const flushNestedPartialCaches = (partialCache, rootPaths) => {
+  return rootPaths.reduce(
+    (destination, key) => {
+      return {
+        ...destination,
+        [key]: {
+          ...partialCache[key],
+          [SHADOW_KEY]: {},
+          nested: flushNestedPartialCaches(
+            partialCache[key].nested,
+            Object.keys(partialCache[key].nested)
+          )
+        }
+      }
+    },
+    { ...partialCache }
+  )
 };
 
 const queryStore = {
@@ -195,19 +253,46 @@ const queryStore = {
       return this
     }
 
-    mutations.forEach(({ scope }, i) =>
-      mergeMutationIntoCache(
+    mutations.forEach(({ scope, persist, add, remove }) => {
+      this.cache = updateDeep(
         this.cache,
-        parsePathname(scope || pathname),
-        mutations[i]
-      )
-    );
+        parsePathname(scope || pathname).flatMap((path, i, { length }) =>
+          i < length - 1 ? [path, 'nested'] : path
+        ),
+        (oldValue, path) => {
+          const partialCache = oldValue || createPartialCache({ path });
+          const strategy = persist ? PERSISTED_KEY : SHADOW_KEY;
+          let newStrategyValue = partialCache[strategy];
 
-    Object.keys(this.cache)
-      .filter(
+          if (remove) {
+            newStrategyValue = removeQueryParams(newStrategyValue, remove);
+          }
+
+          if (add) {
+            newStrategyValue = addQueryParams(newStrategyValue, add);
+          }
+
+          return {
+            ...partialCache,
+            path,
+            mutated: true,
+            [strategy]: newStrategyValue,
+            nested: flushNestedPartialCaches(
+              partialCache.nested,
+              Object.keys(partialCache.nested)
+            )
+          }
+        },
+        path => (path === 'nested' ? {} : createPartialCache({ path }))
+      );
+    });
+
+    this.cache = flushNestedPartialCaches(
+      this.cache,
+      Object.keys(this.cache).filter(
         key => ![WILDCARD_SCOPE, parsePathname(pathname)[0]].includes(key)
       )
-      .forEach(key => flushNestedPartialCache(this.cache[key]));
+    );
 
     return this
   },
@@ -267,7 +352,8 @@ const createQueryStore = ({
       },
       {
         cache: {
-          value: initialCache || {}
+          value: initialCache || {},
+          writable: true // TODO: Get rid of this after cache become history
         }
       }
     );

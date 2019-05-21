@@ -34,7 +34,7 @@ export const update = (target, path, updater) => {
   return target
 }
 
-export const updateDeep = (target, path, updater) => {
+export const updateDeep = (target, path, updater, missingNodeResolver) => {
   if (!isPlainObject(target)) {
     throw new Error(
       "Target is not a plain object. Can't update a not 'plain object like' structure!"
@@ -57,6 +57,7 @@ export const updateDeep = (target, path, updater) => {
     )
   }
 
+  let resolveMissingNode = missingNodeResolver || (() => ({}))
   let updated = Object.assign({}, target)
   let currentNode = updated
   let previousNode
@@ -75,7 +76,10 @@ export const updateDeep = (target, path, updater) => {
         return update(target, path[i], updater)
       }
     } else {
-      currentNode[path[i]] = Object.assign({}, currentNode[path[i]])
+      currentNode[path[i]] = Object.assign(
+        resolveMissingNode(path[i]),
+        currentNode[path[i]]
+      )
       previousNode = currentNode
       currentNode = currentNode[path[i]]
     }

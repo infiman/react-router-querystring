@@ -211,5 +211,20 @@ describe('queryStore module', () => {
       )
       expect(queryStore.resolveQueryString('/')).toEqual('?wild=card&ro=ot')
     })
+
+    test('toString', () =>
+      expect(
+        queryStore
+          .add({
+            pathname: '/path/:param/:id',
+            search: '?foo=bar',
+            state: {
+              ...queryStore.createStateObject({
+                mutations: [{ add: { foo: 'bar' } }]
+              })
+            }
+          })
+          .toString()
+      ).toMatchSnapshot())
   })
 })
