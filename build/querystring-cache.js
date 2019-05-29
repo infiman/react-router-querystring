@@ -193,10 +193,18 @@ const updateDeep = (target, path, updater, missingNodeResolver) => {
   return updated
 };
 
-const QUERYSTRING_CACHE_STATE_KEY = '__querystringCacheStateObject__';
+const QUERYSTRING_CACHE_STATE_KEY = '@@__querystringCacheStateObject__@@';
 const WILDCARD_SCOPE = '*';
+const NESTED_KEY = 'nested';
 const PERSISTED_KEY = 'persisted';
 const SHADOW_KEY = Symbol('shadow');
+
+const createPartialCache = partialCache => ({
+  [NESTED_KEY]: {},
+  [PERSISTED_KEY]: {},
+  [SHADOW_KEY]: {},
+  ...partialCache
+});
 
 const pickBranchFromCache = (cache, [path, ...restPath], destination = []) => {
   if (path) {
@@ -212,19 +220,12 @@ const pickBranchFromCache = (cache, [path, ...restPath], destination = []) => {
     }
 
     return partialCache
-      ? pickBranchFromCache(partialCache.nested, restPath, destination)
+      ? pickBranchFromCache(partialCache[NESTED_KEY], restPath, destination)
       : destination
   } else {
     return destination
   }
 };
-
-const createPartialCache = partialCache => ({
-  nested: {},
-  [PERSISTED_KEY]: {},
-  [SHADOW_KEY]: {},
-  ...partialCache
-});
 
 const flushNestedPartialCaches = (partialCache, rootPaths) => {
   return rootPaths.reduce(
@@ -234,9 +235,9 @@ const flushNestedPartialCaches = (partialCache, rootPaths) => {
         [key]: {
           ...partialCache[key],
           [SHADOW_KEY]: {},
-          nested: flushNestedPartialCaches(
-            partialCache[key].nested,
-            Object.keys(partialCache[key].nested)
+          [NESTED_KEY]: flushNestedPartialCaches(
+            partialCache[key][NESTED_KEY],
+            Object.keys(partialCache[key][NESTED_KEY])
           )
         }
       }
@@ -246,6 +247,13 @@ const flushNestedPartialCaches = (partialCache, rootPaths) => {
 };
 
 const queryStore = {
+  get cache () {
+    return this.history[this.currentHistoryKey]
+  },
+  set cache (value) {
+    this.currentHistoryKey = `${Date.now()}`;
+    this.history[this.currentHistoryKey] = value;
+  },
   add ({ pathname, state }) {
     const { mutations } = (state && state[QUERYSTRING_CACHE_STATE_KEY]) || {};
 
@@ -253,11 +261,13 @@ const queryStore = {
       return this
     }
 
+    let newCache = this.cache;
+
     mutations.forEach(({ scope, persist, add, remove }) => {
-      this.cache = updateDeep(
-        this.cache,
+      newCache = updateDeep(
+        newCache,
         parsePathname(scope || pathname).flatMap((path, i, { length }) =>
-          i < length - 1 ? [path, 'nested'] : path
+          i < length - 1 ? [path, NESTED_KEY] : path
         ),
         (oldValue, path) => {
           const partialCache = oldValue || createPartialCache({ path });
@@ -277,33 +287,29 @@ const queryStore = {
             path,
             mutated: true,
             [strategy]: newStrategyValue,
-            nested: flushNestedPartialCaches(
-              partialCache.nested,
-              Object.keys(partialCache.nested)
+            [NESTED_KEY]: flushNestedPartialCaches(
+              partialCache[NESTED_KEY],
+              Object.keys(partialCache[NESTED_KEY])
             )
           }
         },
-        path => (path === 'nested' ? {} : createPartialCache({ path }))
+        path => (path === NESTED_KEY ? {} : createPartialCache({ path }))
       );
     });
 
-    this.cache = flushNestedPartialCaches(
-      this.cache,
-      Object.keys(this.cache).filter(
+    newCache = flushNestedPartialCaches(
+      newCache,
+      Object.keys(newCache).filter(
         key => ![WILDCARD_SCOPE, parsePathname(pathname)[0]].includes(key)
       )
     );
 
-    return this
-  },
-  clear () {
-    Object.keys(this.cache).forEach(key => delete this.cache[key]);
+    this.cache = newCache;
 
     return this
   },
   resolveQueryString (scope, mutations = []) {
-    const parsedPathname = parsePathname(scope);
-    const branch = pickBranchFromCache(this.cache, parsedPathname);
+    const branch = pickBranchFromCache(this.cache, parsePathname(scope));
     let queryParams = branch.reduce(
       (destination, partialCache) =>
         addQueryParams(destination, {
@@ -325,14 +331,20 @@ const queryStore = {
 
     return this.stringifyQueryParams(queryParams)
   },
+  clear () {
+    this.cache = {};
+
+    return this
+  },
   toString () {
     return JSON.stringify(this.cache)
   }
 };
 
-const createStateObject = ({ mutations } = {}) => ({
+const createStateObject = ({ mutations, ...rest } = {}) => ({
   [QUERYSTRING_CACHE_STATE_KEY]: {
-    mutations: mutations || []
+    mutations: mutations || [],
+    ...rest
   }
 });
 
@@ -343,19 +355,22 @@ const createQueryStore = ({
   stringifyQueryParams
 } = {}) => {
   if (!store) {
-    store = Object.create(
-      {
-        ...queryStore,
-        createStateObject,
-        parseQueryString,
-        stringifyQueryParams
-      },
-      {
-        cache: {
-          value: initialCache || {},
-          writable: true // TODO: Get rid of this after cache become history
+    const currentHistoryKey = `${Date.now()}`;
+
+    store = Object.assign(
+      Object.create(
+        Object.assign(queryStore, {
+          createStateObject,
+          parseQueryString,
+          stringifyQueryParams
+        }),
+        {
+          history: {
+            value: { [currentHistoryKey]: initialCache || {} }
+          }
         }
-      }
+      ),
+      { currentHistoryKey }
     );
   }
 
