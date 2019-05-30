@@ -18,7 +18,7 @@ const removeStrategyMerger = (oldValue, newValue) => {
   return newValue
 }
 
-export const mutateQueryParams = strategy =>
+const mutateQueryParams = strategy =>
   memoize((queryParams, params) => mergeDeep(queryParams, params, strategy))
 
 export const addQueryParams = mutateQueryParams(addStrategyMerger)

@@ -193,17 +193,30 @@ const updateDeep = (target, path, updater, missingNodeResolver) => {
   return updated
 };
 
-const QUERYSTRING_CACHE_STATE_KEY = '@@__querystringCacheStateObject__@@';
 const WILDCARD_SCOPE = '*';
+const QUERYSTRING_CACHE_STATE_KEY = '@@__querystringCacheStateObject__@@';
 const NESTED_KEY = 'nested';
 const PERSISTED_KEY = 'persisted';
 const SHADOW_KEY = Symbol('shadow');
 
+const createKey = () =>
+  Math.random()
+    .toString(36)
+    .substr(2, 7);
+
 const createPartialCache = partialCache => ({
+  ...partialCache,
   [NESTED_KEY]: {},
   [PERSISTED_KEY]: {},
-  [SHADOW_KEY]: {},
-  ...partialCache
+  [SHADOW_KEY]: {}
+});
+
+const createStateObject = ({ mutations, ...rest } = {}) => ({
+  [QUERYSTRING_CACHE_STATE_KEY]: {
+    ...rest,
+    key: createKey(),
+    mutations: mutations || []
+  }
 });
 
 const pickBranchFromCache = (cache, [path, ...restPath], destination = []) => {
@@ -251,13 +264,14 @@ const queryStore = {
     return this.history[this.currentHistoryKey]
   },
   set cache (value) {
-    this.currentHistoryKey = `${Date.now()}`;
     this.history[this.currentHistoryKey] = value;
   },
   add ({ pathname, state }) {
-    const { mutations } = (state && state[QUERYSTRING_CACHE_STATE_KEY]) || {};
+    const { mutations, key } = state[QUERYSTRING_CACHE_STATE_KEY];
 
-    if (!mutations) {
+    if (Object.prototype.hasOwnProperty.call(this.history, key)) {
+      this.currentHistoryKey = key;
+
       return this
     }
 
@@ -304,6 +318,7 @@ const queryStore = {
       )
     );
 
+    this.currentHistoryKey = key;
     this.cache = newCache;
 
     return this
@@ -332,6 +347,8 @@ const queryStore = {
     return this.stringifyQueryParams(queryParams)
   },
   clear () {
+    this.history = {};
+    this.currentHistoryKey = createKey();
     this.cache = {};
 
     return this
@@ -341,13 +358,6 @@ const queryStore = {
   }
 };
 
-const createStateObject = ({ mutations, ...rest } = {}) => ({
-  [QUERYSTRING_CACHE_STATE_KEY]: {
-    mutations: mutations || [],
-    ...rest
-  }
-});
-
 let store;
 const createQueryStore = ({
   initialCache,
@@ -355,7 +365,7 @@ const createQueryStore = ({
   stringifyQueryParams
 } = {}) => {
   if (!store) {
-    const currentHistoryKey = `${Date.now()}`;
+    const currentHistoryKey = createKey();
 
     store = Object.assign(
       Object.create(
@@ -363,21 +373,21 @@ const createQueryStore = ({
           createStateObject,
           parseQueryString,
           stringifyQueryParams
-        }),
-        {
-          history: {
-            value: { [currentHistoryKey]: initialCache || {} }
-          }
-        }
+        })
       ),
-      { currentHistoryKey }
+      {
+        currentHistoryKey,
+        history: { [currentHistoryKey]: initialCache || {} }
+      }
     );
   }
 
   return store
 };
 
+exports.NESTED_KEY = NESTED_KEY;
 exports.PERSISTED_KEY = PERSISTED_KEY;
+exports.QUERYSTRING_CACHE_STATE_KEY = QUERYSTRING_CACHE_STATE_KEY;
 exports.SHADOW_KEY = SHADOW_KEY;
 exports.addQueryParams = addQueryParams;
 exports.createQueryStore = createQueryStore;

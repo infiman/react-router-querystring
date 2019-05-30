@@ -1,11 +1,7 @@
 import { isPlainObject } from './isPlainObject'
 import { merge, mergeDeep } from './merge'
 import { parsePathname } from './parsePathname'
-import {
-  mutateQueryParams,
-  addQueryParams,
-  removeQueryParams
-} from './queryParams'
+import { addQueryParams, removeQueryParams } from './queryParams'
 import { update, updateDeep } from './update'
 
 export {
@@ -13,7 +9,6 @@ export {
   merge,
   mergeDeep,
   parsePathname,
-  mutateQueryParams,
   addQueryParams,
   removeQueryParams,
   update,

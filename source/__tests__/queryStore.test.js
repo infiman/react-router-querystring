@@ -80,7 +80,9 @@ describe('queryStore module', () => {
       ).toEqual({}))
 
     test('add without state object', () =>
-      expect(queryStore.add({ pathname: '/', search: '' }).cache).toEqual({}))
+      expect(
+        () => queryStore.add({ pathname: '/', search: '' }).cache
+      ).toThrowErrorMatchingSnapshot())
 
     test('add -> resolveQueryString', () => {
       queryStore.add({
