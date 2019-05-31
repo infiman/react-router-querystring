@@ -25,10 +25,10 @@ export const update = (target, path, updater) => {
 
   const hasValue = Object.prototype.hasOwnProperty.call(target, path)
   const oldValue = target[path]
-  const newValue = updater(oldValue, path)
+  const updatedValue = updater(oldValue, path, { tail: true })
 
-  if (!hasValue || oldValue !== newValue) {
-    return Object.assign({}, target, { [path]: newValue })
+  if (!hasValue || oldValue !== updatedValue) {
+    return Object.assign({}, target, { [path]: updatedValue })
   }
 
   return target
@@ -65,21 +65,23 @@ export const updateDeep = (target, path, updater, missingNodeResolver) => {
   for (let i = 0, length = path.length; i < length; i++) {
     if (i === length - 1) {
       if (previousNode) {
-        const newNode = update(currentNode, path[i], updater)
+        const updatedNode = update(currentNode, path[i], updater)
 
-        if (currentNode === newNode) {
+        if (currentNode === updatedNode) {
           return target
         }
 
-        previousNode[path[i - 1]] = newNode
+        previousNode[path[i - 1]] = updatedNode
       } else {
         return update(target, path[i], updater)
       }
     } else {
-      currentNode[path[i]] = Object.assign(
-        resolveMissingNode(path[i]),
-        currentNode[path[i]]
-      )
+      const oldOrMissingNode = currentNode[path[i]]
+        ? currentNode[path[i]]
+        : resolveMissingNode(path[i])
+      const updatedNode = updater(oldOrMissingNode, path[i], { tail: false })
+
+      currentNode[path[i]] = Object.assign({}, updatedNode)
       previousNode = currentNode
       currentNode = currentNode[path[i]]
     }

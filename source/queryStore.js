@@ -17,10 +17,10 @@ const createKey = () =>
     .substr(2, 7)
 
 const createPartialCache = partialCache => ({
-  ...partialCache,
   [NESTED_KEY]: {},
   [PERSISTED_KEY]: {},
-  [SHADOW_KEY]: {}
+  [SHADOW_KEY]: {},
+  ...partialCache
 })
 
 const createStateObject = ({ mutations, ...rest } = {}) => ({
@@ -79,7 +79,7 @@ const queryStore = {
     this.history[this.currentHistoryKey] = value
   },
   add ({ pathname, state }) {
-    const { mutations, key } = state[QUERYSTRING_CACHE_STATE_KEY]
+    const { mutations, key, foreign } = state[QUERYSTRING_CACHE_STATE_KEY]
 
     if (Object.prototype.hasOwnProperty.call(this.history, key)) {
       this.currentHistoryKey = key
@@ -95,28 +95,51 @@ const queryStore = {
         parsePathname(scope || pathname).flatMap((path, i, { length }) =>
           i < length - 1 ? [path, NESTED_KEY] : path
         ),
-        (oldValue, path) => {
-          const partialCache = oldValue || createPartialCache({ path })
-          const strategy = persist ? PERSISTED_KEY : SHADOW_KEY
-          let newStrategyValue = partialCache[strategy]
+        (oldValue, path, { tail }) => {
+          if (!tail) {
+            if (foreign) {
+              return createPartialCache({
+                path,
+                [NESTED_KEY]: oldValue[NESTED_KEY]
+              })
+            }
 
-          if (remove) {
-            newStrategyValue = removeQueryParams(newStrategyValue, remove)
-          }
+            return oldValue
+          } else {
+            const partialCache =
+              oldValue || createPartialCache({ path, mutated: true })
 
-          if (add) {
-            newStrategyValue = addQueryParams(newStrategyValue, add)
-          }
+            if (foreign) {
+              return {
+                ...partialCache,
+                [PERSISTED_KEY]: {},
+                [SHADOW_KEY]: this.respectForeignNavigation ? add || {} : {},
+                [NESTED_KEY]: flushNestedPartialCaches(
+                  partialCache[NESTED_KEY],
+                  Object.keys(partialCache[NESTED_KEY])
+                )
+              }
+            } else {
+              const strategy = persist ? PERSISTED_KEY : SHADOW_KEY
+              let newStrategyValue = partialCache[strategy]
 
-          return {
-            ...partialCache,
-            path,
-            mutated: true,
-            [strategy]: newStrategyValue,
-            [NESTED_KEY]: flushNestedPartialCaches(
-              partialCache[NESTED_KEY],
-              Object.keys(partialCache[NESTED_KEY])
-            )
+              if (remove) {
+                newStrategyValue = removeQueryParams(newStrategyValue, remove)
+              }
+
+              if (add) {
+                newStrategyValue = addQueryParams(newStrategyValue, add)
+              }
+
+              return {
+                ...partialCache,
+                [strategy]: newStrategyValue,
+                [NESTED_KEY]: flushNestedPartialCaches(
+                  partialCache[NESTED_KEY],
+                  Object.keys(partialCache[NESTED_KEY])
+                )
+              }
+            }
           }
         },
         path => (path === NESTED_KEY ? {} : createPartialCache({ path }))
@@ -173,6 +196,7 @@ const queryStore = {
 let store
 export const createQueryStore = ({
   initialCache,
+  respectForeignNavigation,
   parseQueryString,
   stringifyQueryParams
 } = {}) => {
@@ -188,6 +212,7 @@ export const createQueryStore = ({
         })
       ),
       {
+        respectForeignNavigation,
         currentHistoryKey,
         history: { [currentHistoryKey]: initialCache || {} }
       }

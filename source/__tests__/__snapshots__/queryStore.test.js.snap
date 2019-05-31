@@ -2,4 +2,4 @@
 
 exports[`queryStore module createQueryStore add without state object 1`] = `"Cannot read property '@@__querystringCacheStateObject__@@' of undefined"`;
 
-exports[`queryStore module createQueryStore toString 1`] = `"{\\"path\\":{\\"path\\":\\"path\\",\\"nested\\":{\\":param\\":{\\"path\\":\\":param\\",\\"nested\\":{\\":id\\":{\\"path\\":\\":id\\",\\"nested\\":{},\\"persisted\\":{},\\"mutated\\":true}},\\"persisted\\":{}}},\\"persisted\\":{}}}"`;
+exports[`queryStore module createQueryStore toString 1`] = `"{\\"path\\":{\\"nested\\":{\\":param\\":{\\"nested\\":{\\":id\\":{\\"nested\\":{},\\"persisted\\":{},\\"path\\":\\":id\\",\\"mutated\\":true}},\\"persisted\\":{},\\"path\\":\\":param\\"}},\\"persisted\\":{},\\"path\\":\\"path\\"}}"`;

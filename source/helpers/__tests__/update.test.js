@@ -28,19 +28,31 @@ describe('update module', () => {
       }))
 
     test('empty plain object', () =>
-      expect(updateDeep({}, ['a', 'b', 'c'], (_, key) => key)).toEqual({
+      expect(
+        updateDeep({}, ['a', 'b', 'c'], (oldValue, key, { tail }) =>
+          tail ? key : oldValue
+        )
+      ).toEqual({
         a: { b: { c: 'c' } }
       }))
 
     test('nested plain object', () =>
       expect(
-        updateDeep({ a: { b: { c: 'c' } } }, ['a', 'b', 'c'], () => 'updated')
+        updateDeep(
+          { a: { b: { c: 'c' } } },
+          ['a', 'b', 'c'],
+          (oldValue, _, { tail }) => (tail ? 'updated' : oldValue)
+        )
       ).toEqual({ a: { b: { c: 'updated' } } }))
 
     test('no changes', () => {
       const target = { a: { b: { c: 'c' } } }
 
-      expect(updateDeep(target, ['a', 'b', 'c'], () => 'c')).toBe(target)
+      expect(
+        updateDeep(target, ['a', 'b', 'c'], (oldValue, _, { tail }) =>
+          tail ? 'c' : oldValue
+        )
+      ).toBe(target)
     })
 
     test('immutable', () => {
