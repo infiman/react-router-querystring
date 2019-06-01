@@ -269,7 +269,10 @@ const queryStore = {
     this.history[this.currentHistoryKey] = value;
   },
   add ({ pathname, state }) {
-    const { mutations, key, foreign } = state[QUERYSTRING_CACHE_STATE_KEY];
+    // eslint-disable-next-line standard/computed-property-even-spacing
+    const { key, mutations, foreign, respect } = state[
+      QUERYSTRING_CACHE_STATE_KEY
+    ];
 
     if (Object.prototype.hasOwnProperty.call(this.history, key)) {
       this.currentHistoryKey = key;
@@ -287,7 +290,7 @@ const queryStore = {
         ),
         (oldValue, path, { tail }) => {
           if (!tail) {
-            if (foreign) {
+            if (foreign && !respect && path !== NESTED_KEY) {
               return createPartialCache({
                 path,
                 [NESTED_KEY]: oldValue[NESTED_KEY]
@@ -302,8 +305,8 @@ const queryStore = {
             if (foreign) {
               return {
                 ...partialCache,
-                [PERSISTED_KEY]: {},
-                [SHADOW_KEY]: this.respectForeignNavigation ? add || {} : {},
+                [PERSISTED_KEY]: respect ? partialCache[PERSISTED_KEY] : {},
+                [SHADOW_KEY]: respect ? add : {},
                 [NESTED_KEY]: flushNestedPartialCaches(
                   partialCache[NESTED_KEY],
                   Object.keys(partialCache[NESTED_KEY])
@@ -386,7 +389,6 @@ const queryStore = {
 let store;
 const createQueryStore = ({
   initialCache,
-  respectForeignNavigation,
   parseQueryString,
   stringifyQueryParams
 } = {}) => {
@@ -402,7 +404,6 @@ const createQueryStore = ({
         })
       ),
       {
-        respectForeignNavigation,
         currentHistoryKey,
         history: { [currentHistoryKey]: initialCache || {} }
       }
