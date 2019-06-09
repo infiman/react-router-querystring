@@ -1,6 +1,6 @@
 {
   "name": "@infiman/querystring-cache",
-  "version": "0.9.6",
+  "version": "0.9.7",
   "description": "Vanilla JavaScript query string state handler",
   "main": "index.cjs.js",
   "scripts": {
