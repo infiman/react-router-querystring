@@ -2,18 +2,18 @@
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var _Object$create = _interopDefault(require('../node_modules/@babel/runtime-corejs3/core-js-stable/object/create.js'));
-var _Object$assign = _interopDefault(require('../node_modules/@babel/runtime-corejs3/core-js-stable/object/assign.js'));
-var _JSON$stringify = _interopDefault(require('../node_modules/@babel/runtime-corejs3/core-js-stable/json/stringify.js'));
-var _includesInstanceProperty = _interopDefault(require('../node_modules/@babel/runtime-corejs3/core-js-stable/instance/includes.js'));
-var _filterInstanceProperty = _interopDefault(require('../node_modules/@babel/runtime-corejs3/core-js-stable/instance/filter.js'));
-var _flatMapInstanceProperty = _interopDefault(require('../node_modules/@babel/runtime-corejs3/core-js-stable/instance/flat-map.js'));
-var _forEachInstanceProperty = _interopDefault(require('../node_modules/@babel/runtime-corejs3/core-js-stable/instance/for-each.js'));
-var _Object$keys = _interopDefault(require('../node_modules/@babel/runtime-corejs3/core-js-stable/object/keys.js'));
-var _reduceInstanceProperty = _interopDefault(require('../node_modules/@babel/runtime-corejs3/core-js-stable/instance/reduce.js'));
-var _Symbol = _interopDefault(require('../node_modules/@babel/runtime-corejs3/core-js-stable/symbol.js'));
-var _Array$isArray = _interopDefault(require('../node_modules/@babel/runtime-corejs3/core-js-stable/array/is-array.js'));
-var memoize = _interopDefault(require('../node_modules/fast-memoize/src/index.js'));
+var _Object$create = _interopDefault(require('@babel/runtime-corejs3/core-js-stable/object/create'));
+var _Object$assign = _interopDefault(require('@babel/runtime-corejs3/core-js-stable/object/assign'));
+var _JSON$stringify = _interopDefault(require('@babel/runtime-corejs3/core-js-stable/json/stringify'));
+var _includesInstanceProperty = _interopDefault(require('@babel/runtime-corejs3/core-js-stable/instance/includes'));
+var _filterInstanceProperty = _interopDefault(require('@babel/runtime-corejs3/core-js-stable/instance/filter'));
+var _flatMapInstanceProperty = _interopDefault(require('@babel/runtime-corejs3/core-js-stable/instance/flat-map'));
+var _forEachInstanceProperty = _interopDefault(require('@babel/runtime-corejs3/core-js-stable/instance/for-each'));
+var _Object$keys = _interopDefault(require('@babel/runtime-corejs3/core-js-stable/object/keys'));
+var _reduceInstanceProperty = _interopDefault(require('@babel/runtime-corejs3/core-js-stable/instance/reduce'));
+var _Symbol = _interopDefault(require('@babel/runtime-corejs3/core-js-stable/symbol'));
+var _Array$isArray = _interopDefault(require('@babel/runtime-corejs3/core-js-stable/array/is-array'));
+var memoize = _interopDefault(require('fast-memoize'));
 
 const isPlainObject = maybeObject => maybeObject && typeof maybeObject === 'object' && (typeof maybeObject.constructor !== 'function' || maybeObject.constructor.name === 'Object');
 

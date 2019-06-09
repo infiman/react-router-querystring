@@ -4,7 +4,7 @@ const {
   createQueryStore,
   addQueryParams,
   removeQueryParams
-} = require(`./build/${name.split('/')[1]}.cjs.js`)
+} = require(`./build/cjs/${name}.js`)
 
 module.exports = {
   QUERYSTRING_CACHE_STATE_KEY,
