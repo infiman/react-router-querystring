@@ -1,11 +1,10 @@
-'use strict'
-
+const { name } = require('./package.json')
 const {
   QUERYSTRING_CACHE_STATE_KEY,
   createQueryStore,
   addQueryParams,
   removeQueryParams
-} = require('./build/querystring-cache.js')
+} = require(`./build/${name.split('/')[1]}.cjs.js`)
 
 module.exports = {
   QUERYSTRING_CACHE_STATE_KEY,

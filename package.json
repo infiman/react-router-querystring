@@ -2,6 +2,7 @@
   "name": "@infiman/querystring-cache",
   "version": "0.9.5",
   "description": "Vanilla JavaScript query string state handler",
+  "main": "index.cjs.js",
   "scripts": {
     "build": "rollup -c",
     "start": "npm run build -- -w",
@@ -29,6 +30,7 @@
   "homepage": "https://github.com/infiman/querystring-cache#readme",
   "devDependencies": {
     "@babel/core": "^7.4.3",
+    "@babel/plugin-transform-runtime": "^7.4.4",
     "@babel/preset-env": "^7.4.3",
     "eslint": "^5.16.0",
     "eslint-config-standard": "^12.0.0",
@@ -40,11 +42,12 @@
     "jest": "^24.7.1",
     "qs": "^6.7.0",
     "rollup": "^1.10.1",
-    "rollup-plugin-commonjs": "^9.3.4",
+    "rollup-plugin-babel": "^4.3.2",
     "rollup-plugin-eslint": "^5.1.0",
     "rollup-plugin-node-resolve": "^4.2.3"
   },
   "dependencies": {
+    "@babel/runtime-corejs3": "^7.4.5",
     "fast-memoize": "^2.5.1"
   }
 }

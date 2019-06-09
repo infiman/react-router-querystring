@@ -1,15 +1,24 @@
-import nodeResolve from 'rollup-plugin-node-resolve'
-import commonjs from 'rollup-plugin-commonjs'
-import { eslint } from 'rollup-plugin-eslint'
+const { eslint } = require('rollup-plugin-eslint')
+const babel = require('rollup-plugin-babel')
+const nodeResolve = require('rollup-plugin-node-resolve')
 
-import { dependencies } from './package.json'
+const { name } = require('./package.json')
 
-export default {
-  input: './source/index.js',
-  external: Object.keys(dependencies),
+module.exports = {
+  input: 'source/index.js',
+  external: RegExp.prototype.test.bind(/node_modules/),
   output: {
-    file: './build/querystring-cache.js',
-    format: 'cjs'
+    name,
+    file: `build/${name.split('/')[1]}.cjs.js`,
+    format: 'cjs',
+    esModule: false
   },
-  plugins: [commonjs(), nodeResolve(), eslint()]
+  plugins: [
+    eslint(),
+    babel({
+      runtimeHelpers: true,
+      exclude: /node_modules/
+    }),
+    nodeResolve()
+  ]
 }
