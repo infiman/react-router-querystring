@@ -4,7 +4,9 @@ const {
   createQueryStore,
   addQueryParams,
   removeQueryParams
-} = require(`./build/cjs/${name}.js`)
+} = require(process.env.NODE_ENV === 'production'
+  ? `./build/cjs/${name}.min.js`
+  : `./build/cjs/${name}.js`)
 
 module.exports = {
   QUERYSTRING_CACHE_STATE_KEY,
