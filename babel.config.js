@@ -3,6 +3,7 @@ module.exports = api => {
 
   return {
     ignore: [/node_modules/],
+    presets: ['@babel/preset-react'],
     plugins: [['@babel/plugin-transform-runtime', { corejs: 3 }]],
     env: {
       test: {

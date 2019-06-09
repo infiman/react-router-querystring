@@ -32,6 +32,7 @@
     "@babel/core": "^7.4.3",
     "@babel/plugin-transform-runtime": "^7.4.4",
     "@babel/preset-env": "^7.4.3",
+    "@babel/preset-react": "^7.0.0",
     "eslint": "^5.16.0",
     "eslint-config-standard": "^12.0.0",
     "eslint-plugin-import": "^2.17.2",
@@ -45,11 +46,15 @@
     "rollup-plugin-babel": "^4.3.2",
     "rollup-plugin-eslint": "^5.1.0",
     "rollup-plugin-node-resolve": "^4.2.3",
+    "rollup-plugin-replace": "^2.2.0",
     "rollup-plugin-size-snapshot": "^0.9.0",
     "rollup-plugin-terser": "^5.0.0"
   },
   "dependencies": {
     "@babel/runtime-corejs3": "^7.4.5",
     "fast-memoize": "^2.5.1"
+  },
+  "peerDependencies": {
+    "react": "^16.8"
   }
 }

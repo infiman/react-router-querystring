@@ -1,3 +1,5 @@
+import { QueryContext, Query, QueryLink } from './components'
+import { addQueryParams, removeQueryParams } from './helpers'
 import {
   createQueryStore,
   QUERYSTRING_CACHE_STATE_KEY,
@@ -5,14 +7,16 @@ import {
   PERSISTED_KEY,
   SHADOW_KEY
 } from './queryStore'
-import { addQueryParams, removeQueryParams } from './helpers'
 
 export {
+  QueryContext,
+  Query,
+  QueryLink,
+  addQueryParams,
+  removeQueryParams,
   createQueryStore,
   QUERYSTRING_CACHE_STATE_KEY,
   NESTED_KEY,
   PERSISTED_KEY,
-  SHADOW_KEY,
-  addQueryParams,
-  removeQueryParams
+  SHADOW_KEY
 }
