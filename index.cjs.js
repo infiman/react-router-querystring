@@ -1,8 +1,5 @@
 const { name } = require('./package.json')
-const { QueryContext, Query, QueryLink } = require(process.env.NODE_ENV ===
-  'production'
-  ? `./build/cjs/${name}.min.js`
-  : `./build/cjs/${name}.js`)
+const { QueryContext, Query, QueryLink } = require(`./build/cjs/${name}.min.js`)
 
 module.exports = {
   QueryContext,
