@@ -39,7 +39,9 @@ module.exports = [
     external,
     output: {
       name,
-      file: `build/cjs/${name}.js`,
+      file: `build/cjs/${name}${
+        process.env.NODE_ENV === 'production' ? '.min' : ''
+      }.js`,
       format: 'cjs',
       esModule: false
     },
@@ -48,24 +50,8 @@ module.exports = [
       replace(replaceOptions()),
       babel(babelOptions()),
       nodeResolve(nodeResolveOptions()),
-      sizeSnapshot()
-    ]
-  },
-  process.env.NODE_ENV === 'production' && {
-    input,
-    external,
-    output: {
-      name,
-      file: `build/cjs/${name}.min.js`,
-      format: 'cjs',
-      esModule: false
-    },
-    plugins: [
-      eslint(eslintOptions()),
-      replace(replaceOptions()),
-      babel(babelOptions()),
-      nodeResolve(nodeResolveOptions()),
-      terser()
-    ]
+      sizeSnapshot(),
+      process.env.NODE_ENV === 'production' && terser()
+    ].filter(Boolean)
   }
-].filter(Boolean)
+]
