@@ -176,7 +176,7 @@ const updateDeep = (target, path, updater, missingNodeResolver) => {
 };
 
 const WILDCARD_SCOPE = '*';
-const QUERYSTRING_CACHE_STATE_KEY = '@@__querystringCacheStateObject__@@';
+const QUERYSTRING_CACHE_STATE_KEY = '@@__QUERYSTRING_CACHE_STATE_OBJECT__@@';
 const NESTED_KEY = 'nested';
 const PERSISTED_KEY = 'persisted';
 const SHADOW_KEY = _Symbol('shadow');

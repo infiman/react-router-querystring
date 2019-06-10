@@ -6,7 +6,8 @@ import {
 } from './helpers'
 
 const WILDCARD_SCOPE = '*'
-export const QUERYSTRING_CACHE_STATE_KEY = '@@__querystringCacheStateObject__@@'
+export const QUERYSTRING_CACHE_STATE_KEY =
+  '@@__QUERYSTRING_CACHE_STATE_OBJECT__@@'
 export const NESTED_KEY = 'nested'
 export const PERSISTED_KEY = 'persisted'
 export const SHADOW_KEY = Symbol('shadow')

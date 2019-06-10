@@ -1,3 +1,3 @@
-# querystring-cache
+# react-router-querystring
 
-JavaScript querystring store.
+Library to handle querystring along with react-router and @reach/router.
