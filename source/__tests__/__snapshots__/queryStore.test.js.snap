@@ -1,5 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`queryStore module createQueryStore add without state object 1`] = `"Cannot read property '@@__querystringCacheStateObject__@@' of undefined"`;
+exports[`queryStore module createQueryStore add without state object 1`] = `"Cannot read property '@@__QUERYSTRING_CACHE_STATE_OBJECT__@@' of undefined"`;
 
 exports[`queryStore module createQueryStore toString 1`] = `"{\\"path\\":{\\"nested\\":{\\":param\\":{\\"nested\\":{\\":id\\":{\\"nested\\":{},\\"persisted\\":{},\\"path\\":\\":id\\",\\"mutated\\":true}},\\"persisted\\":{},\\"path\\":\\":param\\"}},\\"persisted\\":{},\\"path\\":\\"path\\"}}"`;
