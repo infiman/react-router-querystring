@@ -1,3 +1,4 @@
+const path = require('path')
 const { eslint } = require('rollup-plugin-eslint')
 const replace = require('rollup-plugin-replace')
 const babel = require('rollup-plugin-babel')
@@ -5,15 +6,11 @@ const nodeResolve = require('rollup-plugin-node-resolve')
 const { sizeSnapshot } = require('rollup-plugin-size-snapshot')
 const { terser } = require('rollup-plugin-terser')
 
-const { name, dependencies, peerDependencies } = require('./package.json')
+const { name } = require('./package.json')
 
-const allDependencies = [
-  ...Object.keys(dependencies),
-  ...Object.keys(peerDependencies)
-]
 const input = 'source/index.js'
 const external = id =>
-  allDependencies.some(dependency => id.includes(dependency))
+  !id.startsWith('.') && !id.includes(path.join(process.cwd(), 'source'))
 const eslintOptions = options => ({
   throwOnError: process.env.NODE_ENV === 'production',
   throwOnWarning: process.env.NODE_ENV === 'production',
