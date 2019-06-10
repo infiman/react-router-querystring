@@ -31,10 +31,11 @@ export const Query = ({ options, history, children, replace, respect }) => {
     const queryStore = createQueryStore(options)
 
     return {
+      history,
       queryStore,
       resolvePath: resolvePath.bind(null, queryStore)
     }
-  }, [options])
+  }, [history, options])
   const [, setUpdate] = React.useState(null)
 
   React.useEffect(

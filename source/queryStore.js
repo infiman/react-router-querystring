@@ -80,7 +80,7 @@ const queryStore = {
   },
   add ({ pathname, state }) {
     // eslint-disable-next-line standard/computed-property-even-spacing
-    const { key, mutations, foreign, respect } = state[
+    const { key, mutations, foreign, respect, match } = state[
       QUERYSTRING_CACHE_STATE_KEY
     ]
 
@@ -137,10 +137,12 @@ const queryStore = {
               return {
                 ...partialCache,
                 [strategy]: newStrategyValue,
-                [NESTED_KEY]: flushNestedPartialCaches(
-                  partialCache[NESTED_KEY],
-                  Object.keys(partialCache[NESTED_KEY])
-                )
+                [NESTED_KEY]: match
+                  ? partialCache[NESTED_KEY]
+                  : flushNestedPartialCaches(
+                    partialCache[NESTED_KEY],
+                    Object.keys(partialCache[NESTED_KEY])
+                  )
               }
             }
           }
@@ -149,12 +151,14 @@ const queryStore = {
       )
     })
 
-    newCache = flushNestedPartialCaches(
-      newCache,
-      Object.keys(newCache).filter(
-        key => ![WILDCARD_SCOPE, parsePathname(pathname)[0]].includes(key)
+    if (!match) {
+      newCache = flushNestedPartialCaches(
+        newCache,
+        Object.keys(newCache).filter(
+          key => ![WILDCARD_SCOPE, parsePathname(pathname)[0]].includes(key)
+        )
       )
-    )
+    }
 
     this.currentHistoryKey = key
     this.cache = newCache

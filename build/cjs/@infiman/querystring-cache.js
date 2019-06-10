@@ -244,14 +244,13 @@ const queryStore = {
     pathname,
     state
   }) {
-    var _context2;
-
     // eslint-disable-next-line standard/computed-property-even-spacing
     const {
       key,
       mutations,
       foreign,
-      respect
+      respect,
+      match
     } = state[QUERYSTRING_CACHE_STATE_KEY];
 
     if (Object.prototype.hasOwnProperty.call(this.history, key)) {
@@ -309,7 +308,7 @@ const queryStore = {
 
             return { ...partialCache,
               [strategy]: newStrategyValue,
-              [NESTED_KEY]: flushNestedPartialCaches(partialCache[NESTED_KEY], _Object$keys(partialCache[NESTED_KEY]))
+              [NESTED_KEY]: match ? partialCache[NESTED_KEY] : flushNestedPartialCaches(partialCache[NESTED_KEY], _Object$keys(partialCache[NESTED_KEY]))
             };
           }
         }
@@ -318,11 +317,16 @@ const queryStore = {
       }));
     });
 
-    newCache = flushNestedPartialCaches(newCache, _filterInstanceProperty(_context2 = _Object$keys(newCache)).call(_context2, key => {
-      var _context3;
+    if (!match) {
+      var _context2;
 
-      return !_includesInstanceProperty(_context3 = [WILDCARD_SCOPE, parsePathname(pathname)[0]]).call(_context3, key);
-    }));
+      newCache = flushNestedPartialCaches(newCache, _filterInstanceProperty(_context2 = _Object$keys(newCache)).call(_context2, key => {
+        var _context3;
+
+        return !_includesInstanceProperty(_context3 = [WILDCARD_SCOPE, parsePathname(pathname)[0]]).call(_context3, key);
+      }));
+    }
+
     this.currentHistoryKey = key;
     this.cache = newCache;
     return this;
@@ -419,10 +423,11 @@ const Query = ({
   const context = React.useMemo(() => {
     const queryStore = createQueryStore(options);
     return {
+      history,
       queryStore,
       resolvePath: _bindInstanceProperty(resolvePath).call(resolvePath, null, queryStore)
     };
-  }, [options]);
+  }, [history, options]);
   const [, setUpdate] = React.useState(null);
   React.useEffect(() => history.listen(({
     pathname,
@@ -490,12 +495,49 @@ const QueryLink = ({
   });
 };
 
+let matchedScopes = [];
+const QueryParams = ({
+  children,
+  scope,
+  params = []
+}) => {
+  const {
+    history,
+    queryStore
+  } = React.useContext(QueryContext);
+
+  if (!_includesInstanceProperty(matchedScopes).call(matchedScopes, scope)) {
+    var _context;
+
+    matchedScopes.push(scope);
+    const queryParams = queryStore.parseQueryString(history.location.search);
+
+    const ownQueryParams = _reduceInstanceProperty(_context = _Object$keys(queryParams)).call(_context, (destination, param) => _includesInstanceProperty(params).call(params, param) ? { ...destination,
+      [param]: queryParams[param]
+    } : destination, {});
+
+    queryStore.add({
+      pathname: scope,
+      state: { ...queryStore.createStateObject({
+          match: true,
+          mutations: [{
+            add: ownQueryParams
+          }]
+        })
+      }
+    });
+  }
+
+  return children;
+};
+
 exports.NESTED_KEY = NESTED_KEY;
 exports.PERSISTED_KEY = PERSISTED_KEY;
 exports.QUERYSTRING_CACHE_STATE_KEY = QUERYSTRING_CACHE_STATE_KEY;
 exports.Query = Query;
 exports.QueryContext = QueryContext;
 exports.QueryLink = QueryLink;
+exports.QueryParams = QueryParams;
 exports.SHADOW_KEY = SHADOW_KEY;
 exports.addQueryParams = addQueryParams;
 exports.createQueryStore = createQueryStore;

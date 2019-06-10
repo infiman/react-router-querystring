@@ -1,4 +1,4 @@
-import { QueryContext, Query, QueryLink } from './components'
+import { QueryContext, Query, QueryLink, QueryParams } from './components'
 import { addQueryParams, removeQueryParams } from './helpers'
 import {
   createQueryStore,
@@ -12,6 +12,7 @@ export {
   QueryContext,
   Query,
   QueryLink,
+  QueryParams,
   addQueryParams,
   removeQueryParams,
   createQueryStore,

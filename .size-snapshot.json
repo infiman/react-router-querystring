@@ -1,12 +1,12 @@
 {
   "build/cjs/@infiman/querystring-cache.js": {
-    "bundled": 14754,
-    "minified": 8503,
-    "gzipped": 2610
+    "bundled": 15773,
+    "minified": 9065,
+    "gzipped": 2769
   },
   "build/cjs/@infiman/querystring-cache.min.js": {
-    "bundled": 14754,
-    "minified": 8503,
-    "gzipped": 2610
+    "bundled": 15773,
+    "minified": 9065,
+    "gzipped": 2769
   }
 }
