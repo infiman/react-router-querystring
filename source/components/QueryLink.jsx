@@ -8,12 +8,13 @@ export const QueryLink = ({
   hash,
   state,
   mutations,
+  stringify,
   ...props
 }) => {
   const { resolvePath } = React.useContext(QueryContext)
 
   return children({
     ...props,
-    path: resolvePath({ pathname, hash, mutations, state })
+    path: resolvePath({ pathname, hash, mutations, state }, { stringify })
   })
 }

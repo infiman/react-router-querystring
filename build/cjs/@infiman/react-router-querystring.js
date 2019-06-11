@@ -397,17 +397,26 @@ const resolvePath = (queryStore, {
   mutations,
   hash,
   state = {}
-}) => ({
-  pathname,
-  search: queryStore.resolveQueryString(pathname, mutations),
-  hash,
-  state: { ...state,
+}, {
+  stringify
+}) => {
+  const search = queryStore.resolveQueryString(pathname, mutations);
+  const justState = { ...state,
     ...queryStore.createStateObject({
       mutations,
       ...state[QUERYSTRING_CACHE_STATE_KEY]
     })
-  }
-});
+  };
+  return stringify ? {
+    path: `${pathname}${search}${hash}`,
+    state: justState
+  } : {
+    pathname,
+    search,
+    hash,
+    state: justState
+  };
+};
 
 const Query = ({
   options,
@@ -480,6 +489,7 @@ const QueryLink = ({
   hash,
   state,
   mutations,
+  stringify,
   ...props
 }) => {
   const {
@@ -491,6 +501,8 @@ const QueryLink = ({
       hash,
       mutations,
       state
+    }, {
+      stringify
     })
   });
 };
@@ -499,33 +511,36 @@ let matchedScopes = [];
 const QueryParams = ({
   children,
   scope,
-  params = []
+  params
 }) => {
   const {
     history,
     queryStore
   } = React.useContext(QueryContext);
 
-  if (!_includesInstanceProperty(matchedScopes).call(matchedScopes, scope)) {
-    var _context;
-
+  if (scope && !_includesInstanceProperty(matchedScopes).call(matchedScopes, scope)) {
     matchedScopes.push(scope);
-    const queryParams = queryStore.parseQueryString(history.location.search);
 
-    const ownQueryParams = _reduceInstanceProperty(_context = _Object$keys(queryParams)).call(_context, (destination, param) => _includesInstanceProperty(params).call(params, param) ? { ...destination,
-      [param]: queryParams[param]
-    } : destination, {});
+    if (params && params.length && history.location.search) {
+      var _context;
 
-    queryStore.add({
-      pathname: scope,
-      state: { ...queryStore.createStateObject({
-          match: true,
-          mutations: [{
-            add: ownQueryParams
-          }]
-        })
-      }
-    });
+      const queryParams = queryStore.parseQueryString(history.location.search);
+
+      const ownQueryParams = _reduceInstanceProperty(_context = _Object$keys(queryParams)).call(_context, (destination, param) => _includesInstanceProperty(params).call(params, param) ? { ...destination,
+        [param]: queryParams[param]
+      } : destination, {});
+
+      queryStore.add({
+        pathname: scope,
+        state: { ...queryStore.createStateObject({
+            match: true,
+            mutations: [{
+              add: ownQueryParams
+            }]
+          })
+        }
+      });
+    }
   }
 
   return children;

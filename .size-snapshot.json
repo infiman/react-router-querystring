@@ -1,12 +1,12 @@
 {
   "build/cjs/@infiman/react-router-querystring.js": {
-    "bundled": 15776,
-    "minified": 9068,
-    "gzipped": 2770
+    "bundled": 16086,
+    "minified": 9195,
+    "gzipped": 2819
   },
   "build/cjs/@infiman/react-router-querystring.min.js": {
-    "bundled": 15776,
-    "minified": 9068,
-    "gzipped": 2770
+    "bundled": 16086,
+    "minified": 9195,
+    "gzipped": 2819
   }
 }

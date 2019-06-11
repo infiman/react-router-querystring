@@ -6,19 +6,27 @@ export const QueryContext = React.createContext({})
 
 const resolvePath = (
   queryStore,
-  { pathname, mutations, hash, state = {} }
-) => ({
-  pathname,
-  search: queryStore.resolveQueryString(pathname, mutations),
-  hash,
-  state: {
+  { pathname, mutations, hash, state = {} },
+  { stringify }
+) => {
+  const search = queryStore.resolveQueryString(pathname, mutations)
+  const justState = {
     ...state,
     ...queryStore.createStateObject({
       mutations,
       ...state[QUERYSTRING_CACHE_STATE_KEY]
     })
   }
-})
+
+  return stringify
+    ? { path: `${pathname}${search}${hash}`, state: justState }
+    : {
+      pathname,
+      search,
+      hash,
+      state: justState
+    }
+}
 
 export const Query = ({ options, history, children, replace, respect }) => {
   if (replace && !respect) {
