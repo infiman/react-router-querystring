@@ -1,16 +1,22 @@
 export const parsePathname = pathname => {
-  if (typeof pathname !== 'string') {
-    throw new Error(
-      `Pathname is not valid. Expected: string! Received: ${Object.prototype.toString.call(
-        pathname
-      )}.`
-    )
+  if (process.env.NODE_ENV !== 'production') {
+    if (typeof pathname !== 'string') {
+      throw new Error(
+        `pathname param is not valid. Expected: string! Received: ${Object.prototype.toString.call(
+          pathname
+        )}.`
+      )
+    }
   }
 
   const [dirty, ...splitPathname] = pathname.split('/')
 
-  if (dirty || !splitPathname.length) {
-    throw new Error("Pathname is not valid. It should start with '/'!")
+  if (process.env.NODE_ENV !== 'production') {
+    if (dirty || !splitPathname.length) {
+      throw new Error(
+        `pathname param is not valid. Expected: '/'! Received: ${pathname}.`
+      )
+    }
   }
 
   if (!splitPathname[0]) {

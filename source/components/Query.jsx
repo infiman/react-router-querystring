@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { createQueryStore, QUERYSTRING_CACHE_STATE_KEY } from '../queryStore'
+import { isPlainObject } from '../helpers'
 
 export const QueryContext = React.createContext({})
 
@@ -29,10 +30,44 @@ const resolvePath = (
 }
 
 export const Query = ({ options, history, children, replace, respect }) => {
-  if (replace && !respect) {
-    console.warn(
-      "There won't be much to replace if you are not respecting foreign query params. Consider using replace with respect!"
-    )
+  if (process.env.NODE_ENV !== 'production') {
+    if (!isPlainObject(options)) {
+      throw new Error(
+        `options prop is not valid. Expecting: object! Received: ${Object.prototype.toString.call(
+          options
+        )}.`
+      )
+    }
+
+    if (!isPlainObject(history)) {
+      throw new Error(
+        `history prop is not valid. Expecting: object! Received: ${Object.prototype.toString.call(
+          history
+        )}.`
+      )
+    }
+
+    if (
+      typeof history.listen !== 'function' ||
+      typeof history.replace !== 'function' ||
+      !isPlainObject(history.location)
+    ) {
+      throw new Error(
+        `history prop is not valid. Expecting: history.listen: function, history.replace: function, history.location: object! Received: history.listen: ${Object.prototype.toString.call(
+          history.listen
+        )}, history.replace: ${Object.prototype.toString.call(
+          history.replace
+        )}, history.location: ${Object.prototype.toString.call(
+          history.location
+        )}.`
+      )
+    }
+
+    if (replace && !respect) {
+      console.warn(
+        "There won't be much to replace if you are not respecting foreign query params. Consider using replace with respect!"
+      )
+    }
   }
 
   const context = React.useMemo(() => {

@@ -1,10 +1,14 @@
 import { isPlainObject } from './isPlainObject'
 
 export const merge = (target, patch, merger) => {
-  if (!isPlainObject(target)) {
-    throw new Error(
-      "Target is not a plain object. Can't merge into a not 'plain object like' structure!"
-    )
+  if (process.env.NODE_ENV !== 'production') {
+    if (!isPlainObject(target)) {
+      throw new Error(
+        `target param is not valid. Expecting: object! Received: ${Object.prototype.toString.call(
+          target
+        )}.`
+      )
+    }
   }
 
   const patches = Array.isArray(patch) ? patch : [patch]

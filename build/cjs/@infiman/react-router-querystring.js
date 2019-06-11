@@ -20,8 +20,10 @@ var memoize = _interopDefault(require('fast-memoize'));
 const isPlainObject = maybeObject => maybeObject && typeof maybeObject === 'object' && (typeof maybeObject.constructor !== 'function' || maybeObject.constructor.name === 'Object');
 
 const merge = (target, patch, merger) => {
-  if (!isPlainObject(target)) {
-    throw new Error("Target is not a plain object. Can't merge into a not 'plain object like' structure!");
+  {
+    if (!isPlainObject(target)) {
+      throw new Error(`target param is not valid. Expecting: object! Received: ${Object.prototype.toString.call(target)}.`);
+    }
   }
 
   const patches = _Array$isArray(patch) ? patch : [patch];
@@ -63,14 +65,18 @@ const mergeDeep = (target, patch, merger) => {
 };
 
 const parsePathname = pathname => {
-  if (typeof pathname !== 'string') {
-    throw new Error(`Pathname is not valid. Expected: string! Received: ${Object.prototype.toString.call(pathname)}.`);
+  {
+    if (typeof pathname !== 'string') {
+      throw new Error(`pathname param is not valid. Expected: string! Received: ${Object.prototype.toString.call(pathname)}.`);
+    }
   }
 
   const [dirty, ...splitPathname] = pathname.split('/');
 
-  if (dirty || !splitPathname.length) {
-    throw new Error("Pathname is not valid. It should start with '/'!");
+  {
+    if (dirty || !splitPathname.length) {
+      throw new Error(`pathname param is not valid. Expected: '/'! Received: ${pathname}.`);
+    }
   }
 
   if (!splitPathname[0]) {
@@ -102,16 +108,18 @@ const addQueryParams = mutateQueryParams(addStrategyMerger);
 const removeQueryParams = mutateQueryParams(removeStrategyMerger);
 
 const update = (target, path, updater) => {
-  if (!isPlainObject(target)) {
-    throw new Error("Target is not a plain object. Can't update a not 'plain object like' structure!");
-  }
+  {
+    if (!isPlainObject(target)) {
+      throw new Error(`target param is not valid. Expecting: object! Received: ${Object.prototype.toString.call(target)}.`);
+    }
 
-  if (!path || typeof path !== 'string') {
-    throw new Error(`Path is not valid. Expecting: string! Received: ${Object.prototype.toString.call(path)}.`);
-  }
+    if (typeof path !== 'string') {
+      throw new Error(`path param is not valid. Expecting: string! Received: ${Object.prototype.toString.call(path)}.`);
+    }
 
-  if (!updater || typeof updater !== 'function') {
-    throw new Error(`Updater is not valid. Expecting: function! Received: ${Object.prototype.toString.call(updater)}.`);
+    if (typeof updater !== 'function') {
+      throw new Error(`updater param is not valid. Expecting: function! Received: ${Object.prototype.toString.call(updater)}.`);
+    }
   }
 
   const hasValue = Object.prototype.hasOwnProperty.call(target, path);
@@ -129,16 +137,18 @@ const update = (target, path, updater) => {
   return target;
 };
 const updateDeep = (target, path, updater, missingNodeResolver) => {
-  if (!isPlainObject(target)) {
-    throw new Error("Target is not a plain object. Can't update a not 'plain object like' structure!");
-  }
+  {
+    if (!isPlainObject(target)) {
+      throw new Error(`target param is not valid. Expecting: object! Received: ${Object.prototype.toString.call(target)}.`);
+    }
 
-  if (!path || !_Array$isArray(path)) {
-    throw new Error(`Path is not valid. Expecting: array! Received: ${Object.prototype.toString.call(path)}.`);
-  }
+    if (!_Array$isArray(path)) {
+      throw new Error(`path param is not valid. Expecting: array! Received: ${Object.prototype.toString.call(path)}.`);
+    }
 
-  if (!updater || typeof updater !== 'function') {
-    throw new Error(`Updater is not valid. Expecting: function! Received: ${Object.prototype.toString.call(updater)}.`);
+    if (typeof updater !== 'function') {
+      throw new Error(`updater param is not valid. Expecting: function! Received: ${Object.prototype.toString.call(updater)}.`);
+    }
   }
 
   let resolveMissingNode = missingNodeResolver || (() => ({}));
@@ -200,7 +210,7 @@ const createStateObject = ({
   }
 });
 
-const pickBranchFromCache = (cache, [path, ...restPath], destination = []) => {
+const pickBranchFromCache = (cache, [path, ...restPath] = [], destination = []) => {
   if (path) {
     const partialWildcardCache = cache[WILDCARD_SCOPE];
     const partialCache = cache[path];
@@ -219,7 +229,7 @@ const pickBranchFromCache = (cache, [path, ...restPath], destination = []) => {
   }
 };
 
-const flushNestedPartialCaches = (partialCache, rootPaths) => {
+const flushNestedPartialCaches = (partialCache, rootPaths = []) => {
   return _reduceInstanceProperty(rootPaths).call(rootPaths, (destination, key) => {
     return { ...destination,
       [key]: { ...partialCache[key],
@@ -241,7 +251,7 @@ const queryStore = {
   },
 
   add({
-    pathname,
+    pathname = '',
     state
   }) {
     // eslint-disable-next-line standard/computed-property-even-spacing
@@ -332,7 +342,7 @@ const queryStore = {
     return this;
   },
 
-  resolveQueryString(scope, mutations = []) {
+  resolveQueryString(scope = '', mutations = []) {
     const branch = pickBranchFromCache(this.cache, parsePathname(scope));
 
     let queryParams = _reduceInstanceProperty(branch).call(branch, (destination, partialCache) => addQueryParams(destination, { ...partialCache[SHADOW_KEY],
@@ -373,6 +383,16 @@ const createQueryStore = ({
   parseQueryString,
   stringifyQueryParams
 } = {}) => {
+  {
+    if (typeof parseQueryString !== 'function') {
+      throw new Error(`parseQueryString param is not valid. Expecting: function! Received: ${Object.prototype.toString.call(parseQueryString)}.`);
+    }
+
+    if (typeof stringifyQueryParams !== 'function') {
+      throw new Error(`stringifyQueryParams param is not valid. Expecting: function! Received: ${Object.prototype.toString.call(stringifyQueryParams)}.`);
+    }
+  }
+
   if (!store) {
     const currentHistoryKey = createKey();
     store = _Object$assign(_Object$create(_Object$assign(queryStore, {
@@ -425,8 +445,22 @@ const Query = ({
   replace,
   respect
 }) => {
-  if (replace && !respect) {
-    console.warn("There won't be much to replace if you are not respecting foreign query params. Consider using replace with respect!");
+  {
+    if (!isPlainObject(options)) {
+      throw new Error(`options prop is not valid. Expecting: object! Received: ${Object.prototype.toString.call(options)}.`);
+    }
+
+    if (!isPlainObject(history)) {
+      throw new Error(`history prop is not valid. Expecting: object! Received: ${Object.prototype.toString.call(history)}.`);
+    }
+
+    if (typeof history.listen !== 'function' || typeof history.replace !== 'function' || !isPlainObject(history.location)) {
+      throw new Error(`history prop is not valid. Expecting: history.listen: function, history.replace: function, history.location: object! Received: history.listen: ${Object.prototype.toString.call(history.listen)}, history.replace: ${Object.prototype.toString.call(history.replace)}, history.location: ${Object.prototype.toString.call(history.location)}.`);
+    }
+
+    if (replace && !respect) {
+      console.warn("There won't be much to replace if you are not respecting foreign query params. Consider using replace with respect!");
+    }
   }
 
   const context = React.useMemo(() => {
@@ -513,15 +547,25 @@ const QueryParams = ({
   scope,
   params
 }) => {
+  {
+    if (typeof scope !== 'string') {
+      throw new Error(`scope prop is not valid. Expecting: string! Received: ${Object.prototype.toString.call(scope)}.`);
+    }
+
+    if (!_Array$isArray(params)) {
+      throw new Error(`params prop is not valid. Expecting: array! Received: ${Object.prototype.toString.call(params)}.`);
+    }
+  }
+
   const {
     history,
     queryStore
   } = React.useContext(QueryContext);
 
-  if (scope && !_includesInstanceProperty(matchedScopes).call(matchedScopes, scope)) {
+  if (!_includesInstanceProperty(matchedScopes).call(matchedScopes, scope)) {
     matchedScopes.push(scope);
 
-    if (params && params.length && history.location.search) {
+    if (params.length && history.location.search) {
       var _context;
 
       const queryParams = queryStore.parseQueryString(history.location.search);

@@ -1,26 +1,30 @@
 import { isPlainObject } from './isPlainObject'
 
 export const update = (target, path, updater) => {
-  if (!isPlainObject(target)) {
-    throw new Error(
-      "Target is not a plain object. Can't update a not 'plain object like' structure!"
-    )
-  }
+  if (process.env.NODE_ENV !== 'production') {
+    if (!isPlainObject(target)) {
+      throw new Error(
+        `target param is not valid. Expecting: object! Received: ${Object.prototype.toString.call(
+          target
+        )}.`
+      )
+    }
 
-  if (!path || typeof path !== 'string') {
-    throw new Error(
-      `Path is not valid. Expecting: string! Received: ${Object.prototype.toString.call(
-        path
-      )}.`
-    )
-  }
+    if (typeof path !== 'string') {
+      throw new Error(
+        `path param is not valid. Expecting: string! Received: ${Object.prototype.toString.call(
+          path
+        )}.`
+      )
+    }
 
-  if (!updater || typeof updater !== 'function') {
-    throw new Error(
-      `Updater is not valid. Expecting: function! Received: ${Object.prototype.toString.call(
-        updater
-      )}.`
-    )
+    if (typeof updater !== 'function') {
+      throw new Error(
+        `updater param is not valid. Expecting: function! Received: ${Object.prototype.toString.call(
+          updater
+        )}.`
+      )
+    }
   }
 
   const hasValue = Object.prototype.hasOwnProperty.call(target, path)
@@ -35,26 +39,30 @@ export const update = (target, path, updater) => {
 }
 
 export const updateDeep = (target, path, updater, missingNodeResolver) => {
-  if (!isPlainObject(target)) {
-    throw new Error(
-      "Target is not a plain object. Can't update a not 'plain object like' structure!"
-    )
-  }
+  if (process.env.NODE_ENV !== 'production') {
+    if (!isPlainObject(target)) {
+      throw new Error(
+        `target param is not valid. Expecting: object! Received: ${Object.prototype.toString.call(
+          target
+        )}.`
+      )
+    }
 
-  if (!path || !Array.isArray(path)) {
-    throw new Error(
-      `Path is not valid. Expecting: array! Received: ${Object.prototype.toString.call(
-        path
-      )}.`
-    )
-  }
+    if (!Array.isArray(path)) {
+      throw new Error(
+        `path param is not valid. Expecting: array! Received: ${Object.prototype.toString.call(
+          path
+        )}.`
+      )
+    }
 
-  if (!updater || typeof updater !== 'function') {
-    throw new Error(
-      `Updater is not valid. Expecting: function! Received: ${Object.prototype.toString.call(
-        updater
-      )}.`
-    )
+    if (typeof updater !== 'function') {
+      throw new Error(
+        `updater param is not valid. Expecting: function! Received: ${Object.prototype.toString.call(
+          updater
+        )}.`
+      )
+    }
   }
 
   let resolveMissingNode = missingNodeResolver || (() => ({}))

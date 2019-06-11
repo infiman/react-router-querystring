@@ -48,7 +48,12 @@ module.exports = [
       babel(babelOptions()),
       nodeResolve(nodeResolveOptions()),
       sizeSnapshot(),
-      process.env.NODE_ENV === 'production' && terser()
+      process.env.NODE_ENV === 'production' &&
+        terser({
+          compress: { module: true },
+          mangle: { module: true },
+          warnings: true
+        })
     ].filter(Boolean)
   }
 ]

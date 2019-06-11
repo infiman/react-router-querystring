@@ -1,3 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`merge module merge empty invocation 1`] = `"Target is not a plain object. Can't merge into a not 'plain object like' structure!"`;
+exports[`merge module merge empty invocation 1`] = `"target param is not valid. Expecting: object! Received: [object Undefined]."`;

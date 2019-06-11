@@ -32,7 +32,11 @@ const createStateObject = ({ mutations, ...rest } = {}) => ({
   }
 })
 
-const pickBranchFromCache = (cache, [path, ...restPath], destination = []) => {
+const pickBranchFromCache = (
+  cache,
+  [path, ...restPath] = [],
+  destination = []
+) => {
   if (path) {
     const partialWildcardCache = cache[WILDCARD_SCOPE]
     const partialCache = cache[path]
@@ -53,7 +57,7 @@ const pickBranchFromCache = (cache, [path, ...restPath], destination = []) => {
   }
 }
 
-const flushNestedPartialCaches = (partialCache, rootPaths) => {
+const flushNestedPartialCaches = (partialCache, rootPaths = []) => {
   return rootPaths.reduce(
     (destination, key) => {
       return {
@@ -79,7 +83,7 @@ const queryStore = {
   set cache (value) {
     this.history[this.currentHistoryKey] = value
   },
-  add ({ pathname, state }) {
+  add ({ pathname = '', state }) {
     // eslint-disable-next-line standard/computed-property-even-spacing
     const { key, mutations, foreign, respect, match } = state[
       QUERYSTRING_CACHE_STATE_KEY
@@ -166,7 +170,7 @@ const queryStore = {
 
     return this
   },
-  resolveQueryString (scope, mutations = []) {
+  resolveQueryString (scope = '', mutations = []) {
     const branch = pickBranchFromCache(this.cache, parsePathname(scope))
     let queryParams = branch.reduce(
       (destination, partialCache) =>
@@ -207,6 +211,24 @@ export const createQueryStore = ({
   parseQueryString,
   stringifyQueryParams
 } = {}) => {
+  if (process.env.NODE_ENV !== 'production') {
+    if (typeof parseQueryString !== 'function') {
+      throw new Error(
+        `parseQueryString param is not valid. Expecting: function! Received: ${Object.prototype.toString.call(
+          parseQueryString
+        )}.`
+      )
+    }
+
+    if (typeof stringifyQueryParams !== 'function') {
+      throw new Error(
+        `stringifyQueryParams param is not valid. Expecting: function! Received: ${Object.prototype.toString.call(
+          stringifyQueryParams
+        )}.`
+      )
+    }
+  }
+
   if (!store) {
     const currentHistoryKey = createKey()
 

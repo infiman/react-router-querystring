@@ -1,13 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`update module update empty invocation 1`] = `"Target is not a plain object. Can't update a not 'plain object like' structure!"`;
+exports[`update module update empty invocation 1`] = `"target param is not valid. Expecting: object! Received: [object Undefined]."`;
 
-exports[`update module update one param 1`] = `"Path is not valid. Expecting: string! Received: [object Undefined]."`;
+exports[`update module update one param 1`] = `"path param is not valid. Expecting: string! Received: [object Undefined]."`;
 
-exports[`update module update two params 1`] = `"Updater is not valid. Expecting: function! Received: [object Undefined]."`;
+exports[`update module update two params 1`] = `"updater param is not valid. Expecting: function! Received: [object Undefined]."`;
 
-exports[`update module updateDeep empty invocation 1`] = `"Target is not a plain object. Can't update a not 'plain object like' structure!"`;
+exports[`update module updateDeep empty invocation 1`] = `"target param is not valid. Expecting: object! Received: [object Undefined]."`;
 
-exports[`update module updateDeep one param 1`] = `"Path is not valid. Expecting: array! Received: [object Undefined]."`;
+exports[`update module updateDeep one param 1`] = `"path param is not valid. Expecting: array! Received: [object Undefined]."`;
 
-exports[`update module updateDeep two params 1`] = `"Updater is not valid. Expecting: function! Received: [object Undefined]."`;
+exports[`update module updateDeep two params 1`] = `"updater param is not valid. Expecting: function! Received: [object Undefined]."`;
