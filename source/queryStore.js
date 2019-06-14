@@ -1,7 +1,7 @@
 import {
   parsePathname,
-  addQueryParams,
-  removeQueryParams,
+  addQueryParams as addQueryParamsInternal,
+  removeQueryParams as removeQueryParamsInternal,
   updateDeep
 } from './helpers'
 
@@ -132,11 +132,14 @@ const queryStore = {
               let newStrategyValue = partialCache[strategy]
 
               if (remove) {
-                newStrategyValue = removeQueryParams(newStrategyValue, remove)
+                newStrategyValue = this.removeQueryParams(
+                  newStrategyValue,
+                  remove
+                )
               }
 
               if (add) {
-                newStrategyValue = addQueryParams(newStrategyValue, add)
+                newStrategyValue = this.addQueryParams(newStrategyValue, add)
               }
 
               return {
@@ -174,7 +177,7 @@ const queryStore = {
     const branch = pickBranchFromCache(this.cache, parsePathname(scope))
     let queryParams = branch.reduce(
       (destination, partialCache) =>
-        addQueryParams(destination, {
+        this.addQueryParams(destination, {
           ...partialCache[SHADOW_KEY],
           ...partialCache[PERSISTED_KEY]
         }),
@@ -183,11 +186,11 @@ const queryStore = {
 
     mutations.forEach(({ add, remove }) => {
       if (remove) {
-        queryParams = removeQueryParams(queryParams, remove)
+        queryParams = this.removeQueryParams(queryParams, remove)
       }
 
       if (add) {
-        queryParams = addQueryParams(queryParams, add)
+        queryParams = this.addQueryParams(queryParams, add)
       }
     })
 
@@ -209,7 +212,9 @@ let store
 export const createQueryStore = ({
   initialCache,
   parseQueryString,
-  stringifyQueryParams
+  stringifyQueryParams,
+  addQueryParams,
+  removeQueryParams
 } = {}) => {
   if (process.env.NODE_ENV !== 'production') {
     if (typeof parseQueryString !== 'function') {
@@ -237,7 +242,9 @@ export const createQueryStore = ({
         Object.assign(queryStore, {
           createStateObject,
           parseQueryString,
-          stringifyQueryParams
+          stringifyQueryParams,
+          addQueryParams: addQueryParams || addQueryParamsInternal,
+          removeQueryParams: removeQueryParams || removeQueryParamsInternal
         })
       ),
       {

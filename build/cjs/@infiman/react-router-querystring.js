@@ -309,11 +309,11 @@ const queryStore = {
             let newStrategyValue = partialCache[strategy];
 
             if (remove) {
-              newStrategyValue = removeQueryParams(newStrategyValue, remove);
+              newStrategyValue = this.removeQueryParams(newStrategyValue, remove);
             }
 
             if (add) {
-              newStrategyValue = addQueryParams(newStrategyValue, add);
+              newStrategyValue = this.addQueryParams(newStrategyValue, add);
             }
 
             return { ...partialCache,
@@ -345,7 +345,7 @@ const queryStore = {
   resolveQueryString(scope = '', mutations = []) {
     const branch = pickBranchFromCache(this.cache, parsePathname(scope));
 
-    let queryParams = _reduceInstanceProperty(branch).call(branch, (destination, partialCache) => addQueryParams(destination, { ...partialCache[SHADOW_KEY],
+    let queryParams = _reduceInstanceProperty(branch).call(branch, (destination, partialCache) => this.addQueryParams(destination, { ...partialCache[SHADOW_KEY],
       ...partialCache[PERSISTED_KEY]
     }), {});
 
@@ -354,11 +354,11 @@ const queryStore = {
       remove
     }) => {
       if (remove) {
-        queryParams = removeQueryParams(queryParams, remove);
+        queryParams = this.removeQueryParams(queryParams, remove);
       }
 
       if (add) {
-        queryParams = addQueryParams(queryParams, add);
+        queryParams = this.addQueryParams(queryParams, add);
       }
     });
 
@@ -381,7 +381,9 @@ let store;
 const createQueryStore = ({
   initialCache,
   parseQueryString,
-  stringifyQueryParams
+  stringifyQueryParams,
+  addQueryParams: addQueryParams$1,
+  removeQueryParams: removeQueryParams$1
 } = {}) => {
   {
     if (typeof parseQueryString !== 'function') {
@@ -398,7 +400,9 @@ const createQueryStore = ({
     store = _Object$assign(_Object$create(_Object$assign(queryStore, {
       createStateObject,
       parseQueryString,
-      stringifyQueryParams
+      stringifyQueryParams,
+      addQueryParams: addQueryParams$1 || addQueryParams,
+      removeQueryParams: removeQueryParams$1 || removeQueryParams
     })), {
       currentHistoryKey,
       history: {
