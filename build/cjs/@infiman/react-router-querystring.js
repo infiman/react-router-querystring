@@ -478,8 +478,9 @@ const Query = ({
   const [, setUpdate] = React.useState(null);
   React.useEffect(() => history.listen(({
     pathname,
-    state,
-    search
+    search,
+    hash,
+    state
   }) => {
     let needReplace = false;
     let justState = { ...state
@@ -506,11 +507,21 @@ const Query = ({
     }
 
     if (needReplace) {
-      history.replace(`${pathname}${context.queryStore.resolveQueryString(pathname)}`, { ...justState,
-        [QUERYSTRING_CACHE_STATE_KEY]: { ...justState[QUERYSTRING_CACHE_STATE_KEY],
-          replaced: true
+      const {
+        path,
+        state
+      } = context.resolvePath({
+        pathname,
+        hash,
+        state: {
+          [QUERYSTRING_CACHE_STATE_KEY]: {
+            replaced: true
+          }
         }
+      }, {
+        stringify: true
       });
+      history.replace(path, state);
     } else {
       setUpdate(justState);
     }

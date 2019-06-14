@@ -83,7 +83,7 @@ export const Query = ({ options, history, children, replace, respect }) => {
 
   React.useEffect(
     () =>
-      history.listen(({ pathname, state, search }) => {
+      history.listen(({ pathname, search, hash, state }) => {
         let needReplace = false
         let justState = { ...state }
 
@@ -106,16 +106,16 @@ export const Query = ({ options, history, children, replace, respect }) => {
         }
 
         if (needReplace) {
-          history.replace(
-            `${pathname}${context.queryStore.resolveQueryString(pathname)}`,
+          const { path, state } = context.resolvePath(
             {
-              ...justState,
-              [QUERYSTRING_CACHE_STATE_KEY]: {
-                ...justState[QUERYSTRING_CACHE_STATE_KEY],
-                replaced: true
-              }
-            }
+              pathname,
+              hash,
+              state: { [QUERYSTRING_CACHE_STATE_KEY]: { replaced: true } }
+            },
+            { stringify: true }
           )
+
+          history.replace(path, state)
         } else {
           setUpdate(justState)
         }
