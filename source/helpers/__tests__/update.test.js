@@ -1,4 +1,4 @@
-import { update, updateDeep } from '../'
+import { update, updateDeep } from '../update'
 
 describe('update module', () => {
   describe('update', () => {

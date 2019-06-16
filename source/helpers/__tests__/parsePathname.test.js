@@ -1,4 +1,4 @@
-import { parsePathname } from '../'
+import { parsePathname } from '../parsePathname'
 
 describe('parsePathname module', () => {
   describe('parsePathname', () => {

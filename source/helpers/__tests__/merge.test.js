@@ -1,4 +1,4 @@
-import { merge, mergeDeep } from '../'
+import { merge, mergeDeep } from '../merge'
 
 describe('merge module', () => {
   describe('merge', () => {

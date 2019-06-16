@@ -1,4 +1,4 @@
-import { isPlainObject } from '../'
+import { isPlainObject } from '../isPlainObject'
 
 describe('isPlainObject module', () => {
   describe('isPlainObject', () => {

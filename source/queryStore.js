@@ -1,9 +1,9 @@
+import { parsePathname } from './helpers/parsePathname'
 import {
-  parsePathname,
   addQueryParams as addQueryParamsInternal,
-  removeQueryParams as removeQueryParamsInternal,
-  updateDeep
-} from './helpers'
+  removeQueryParams as removeQueryParamsInternal
+} from './helpers/queryParams'
+import { updateDeep } from './helpers/update'
 
 const WILDCARD_SCOPE = '*'
 export const QUERYSTRING_CACHE_STATE_KEY =

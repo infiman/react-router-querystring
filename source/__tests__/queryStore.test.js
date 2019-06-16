@@ -1,6 +1,11 @@
 import qs from 'qs'
 
-import { createQueryStore, PERSISTED_KEY, SHADOW_KEY } from '../'
+import {
+  createQueryStore,
+  NESTED_KEY,
+  PERSISTED_KEY,
+  SHADOW_KEY
+} from '../queryStore'
 
 const QS_CONFIG = {
   arrayFormat: 'brackets',
@@ -43,14 +48,14 @@ describe('queryStore module', () => {
       ).toEqual({
         path: {
           path: 'path',
-          nested: {
+          [NESTED_KEY]: {
             ':param': {
               path: ':param',
-              nested: {
+              [NESTED_KEY]: {
                 ':id': {
                   path: ':id',
                   mutated: true,
-                  nested: {},
+                  [NESTED_KEY]: {},
                   [PERSISTED_KEY]: {},
                   [SHADOW_KEY]: {
                     foo: 'bar'

@@ -1,5 +1,7 @@
 import { isPlainObject } from './isPlainObject'
 
+const getPlainObject = () => ({})
+
 export const update = (target, path, updater) => {
   if (process.env.NODE_ENV !== 'production') {
     if (!isPlainObject(target)) {
@@ -65,7 +67,7 @@ export const updateDeep = (target, path, updater, missingNodeResolver) => {
     }
   }
 
-  let resolveMissingNode = missingNodeResolver || (() => ({}))
+  let resolveMissingNode = missingNodeResolver || getPlainObject
   let updated = Object.assign({}, target)
   let currentNode = updated
   let previousNode

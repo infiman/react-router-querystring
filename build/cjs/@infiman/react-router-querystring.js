@@ -17,6 +17,28 @@ var _Symbol = _interopDefault(require('@babel/runtime-corejs3/core-js-stable/sym
 var _Array$isArray = _interopDefault(require('@babel/runtime-corejs3/core-js-stable/array/is-array'));
 var memoize = _interopDefault(require('fast-memoize'));
 
+const parsePathname = pathname => {
+  {
+    if (typeof pathname !== 'string') {
+      throw new Error(`pathname param is not valid. Expected: string! Received: ${Object.prototype.toString.call(pathname)}.`);
+    }
+  }
+
+  const [dirty, ...splitPathname] = pathname.split('/');
+
+  {
+    if (dirty || !splitPathname.length) {
+      throw new Error(`pathname param is not valid. Expected: '/'! Received: ${pathname}.`);
+    }
+  }
+
+  if (!splitPathname[0]) {
+    splitPathname[0] = '/';
+  }
+
+  return splitPathname;
+};
+
 const isPlainObject = maybeObject => maybeObject && typeof maybeObject === 'object' && (typeof maybeObject.constructor !== 'function' || maybeObject.constructor.name === 'Object');
 
 const merge = (target, patch, merger) => {
@@ -64,28 +86,6 @@ const mergeDeep = (target, patch, merger) => {
   });
 };
 
-const parsePathname = pathname => {
-  {
-    if (typeof pathname !== 'string') {
-      throw new Error(`pathname param is not valid. Expected: string! Received: ${Object.prototype.toString.call(pathname)}.`);
-    }
-  }
-
-  const [dirty, ...splitPathname] = pathname.split('/');
-
-  {
-    if (dirty || !splitPathname.length) {
-      throw new Error(`pathname param is not valid. Expected: '/'! Received: ${pathname}.`);
-    }
-  }
-
-  if (!splitPathname[0]) {
-    splitPathname[0] = '/';
-  }
-
-  return splitPathname;
-};
-
 const addStrategyMerger = (oldValue, newValue) => {
   if (_Array$isArray(oldValue) && _Array$isArray(newValue)) {
     return [...oldValue, ...newValue];
@@ -103,9 +103,10 @@ const removeStrategyMerger = (oldValue, newValue) => {
 };
 
 const mutateQueryParams = strategy => memoize((queryParams, params) => mergeDeep(queryParams, params, strategy));
-
 const addQueryParams = mutateQueryParams(addStrategyMerger);
 const removeQueryParams = mutateQueryParams(removeStrategyMerger);
+
+const getPlainObject = () => ({});
 
 const update = (target, path, updater) => {
   {
@@ -151,7 +152,7 @@ const updateDeep = (target, path, updater, missingNodeResolver) => {
     }
   }
 
-  let resolveMissingNode = missingNodeResolver || (() => ({}));
+  let resolveMissingNode = missingNodeResolver || getPlainObject;
 
   let updated = _Object$assign({}, target);
 
@@ -605,14 +606,8 @@ const QueryParams = ({
   return children;
 };
 
-exports.NESTED_KEY = NESTED_KEY;
-exports.PERSISTED_KEY = PERSISTED_KEY;
-exports.QUERYSTRING_CACHE_STATE_KEY = QUERYSTRING_CACHE_STATE_KEY;
 exports.Query = Query;
 exports.QueryContext = QueryContext;
 exports.QueryLink = QueryLink;
 exports.QueryParams = QueryParams;
-exports.SHADOW_KEY = SHADOW_KEY;
-exports.addQueryParams = addQueryParams;
-exports.createQueryStore = createQueryStore;
-exports.removeQueryParams = removeQueryParams;
+exports.mutateQueryParams = mutateQueryParams;

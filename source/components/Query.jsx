@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { createQueryStore, QUERYSTRING_CACHE_STATE_KEY } from '../queryStore'
-import { isPlainObject } from '../helpers'
+import { isPlainObject } from '../helpers/isPlainObject'
 
 export const QueryContext = React.createContext({})
 
